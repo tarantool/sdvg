@@ -1,0 +1,77 @@
+workers_count: 32
+batch_size: 1000
+random_seed: 0
+output:
+  type: csv
+  params:
+    datetime_format: 2006-01-02T15:04:05Z07:00
+models:
+  token:
+    rows_count: 1000
+    rows_per_file: 10
+    columns:
+      - name: id
+        type: uuid
+        distinct_percentage: 0.25
+      - name: user_id
+        foreign_key: user.id
+      - name: session_id
+        type: string
+        type_params:
+          min_length: 16
+          max_length: 32
+        distinct_percentage: 0.5
+    partition_columns:
+      - name: id
+        write_to_output: true
+      - name: session_id
+        write_to_output: true
+
+  user:
+    rows_count: 10000
+    rows_per_file: 50000
+    columns:
+      - name: id
+        type: integer
+        type_params:
+          from: 1
+          to: 50000000
+        ordered: true
+      - name: str_id
+        type: string
+        ordered: true
+      - name: ru_phone
+        type: string
+        type_params:
+          logical_type: phone
+          locale: ru
+      - name: first_name_ru
+        type: string
+        type_params:
+          logical_type: first_name
+          locale: ru
+      - name: last_name_ru
+        type: string
+        type_params:
+          logical_type: last_name
+          locale: ru
+      - name: first_name_en
+        type: string
+        type_params:
+          logical_type: first_name
+      - name: passport
+        type: string
+        type_params:
+          template: AA 00 000 000
+        distinct_percentage: 1
+        ordered: true
+      - name: created
+        type: datetime
+        type_params:
+          from: 2020-01-01T00:00:00Z
+        ordered: true
+      - name: birthday
+        type: datetime
+        type_params:
+          from: 1900-01-01T00:00:00Z
+        null_percentage: 0.1

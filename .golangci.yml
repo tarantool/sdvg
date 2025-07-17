@@ -1,0 +1,57 @@
+linters:
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  disable:
+    - varnamelen
+    - funlen
+    - ireturn
+    - testpackage
+    - tagliatelle
+    - err113
+    - paralleltest
+    - gosec
+    - exhaustruct
+    - exhaustive
+    - contextcheck
+    - gofumpt
+    - gochecknoglobals
+    - gochecknoinits
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(sdvg)
+  revive:
+    rules:
+      - name: error-strings
+        disabled: true
+  perfsprint:
+    errorf: false
+  forbidigo:
+    forbid:
+      - ^(fmt\.Print(|f|ln)|print|println)$
+      - fmt\.Errorf$
+  wrapcheck:
+    ignorePackageGlobs:
+      - sdvg/*
+  depguard:
+    rules:
+      stderrors:
+        deny:
+          - pkg: "errors$"
+            desc: use pkg/errors
+

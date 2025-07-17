@@ -1,0 +1,45 @@
+name: "Release"
+
+on:
+  workflow_call:
+    inputs:
+      release_name:
+        type: "string"
+        default: ""
+
+jobs:
+  release:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Download build artifacts"
+        uses: "actions/download-artifact@v4"
+        with:
+          path: "build/out/"
+          pattern: "sdvg-*"
+          merge-multiple: true
+
+      - name: "Extract release notes for ${{ inputs.release_name }}"
+        env:
+          RELEASE_NAME: "${{ inputs.release_name }}"
+        run: 'awk "/^## .*$RELEASE_NAME/ { flag=1; next } /^## / { flag=0 } flag" CHANGELOG.md > release-notes.txt'
+
+      - name: "Remove old version of release"
+        if: "${{ inputs.release_name == 'latest' }}"
+        uses: "dev-drprasad/delete-tag-and-release@v1.1"
+        with:
+          tag_name: "${{ inputs.release_name }}"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: "Create release"
+        uses: "ncipollo/release-action@v1"
+        with:
+          tag: "${{ inputs.release_name }}"
+          bodyFile: "release-notes.txt"
+          artifacts: "build/out/sdvg-*"
+          draft: false
+          prerelease: false
+          makeLatest: "${{ inputs.release_name == 'latest' }}"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

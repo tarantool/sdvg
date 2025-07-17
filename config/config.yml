@@ -1,0 +1,15 @@
+# Параметры логгера
+#log_format: text
+
+# Параметры HTTP
+#http:
+#  listen_address:
+#  read_timeout:
+#  write_timeout:
+#  idle_timeout:
+
+# Параметры Open AI
+#open_ai:
+#  api_key:
+#  base_url:
+#  model:

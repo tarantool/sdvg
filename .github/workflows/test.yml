@@ -1,0 +1,62 @@
+name: "Test"
+
+on:
+  workflow_call:
+
+env:
+  GIT_CONFIG_GLOBAL: "/root/.gitconfig" # fix path in container (https://github.com/actions/runner/issues/2033)
+
+jobs:
+
+  ### LINT ###
+
+  lint:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Run linter"
+        run: "golangci-lint run --print-issued-lines=false --out-format code-climate:lint.json,line-number --timeout 5m"
+
+      - uses: "actions/upload-artifact@v4"
+        with:
+          name: "codequality"
+          path: "lint.json"
+
+  ### UNIT ###
+
+  unit:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Run unit tests"
+        run: "make test/unit"
+
+  ### COVER ###
+
+  cover:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Measuring test coverage"
+        run: "make test/cover"
+
+  ### PERFORMANCE ###
+
+  performance:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Run benchmarks"
+        run: "make test/performance | tee performance.out"

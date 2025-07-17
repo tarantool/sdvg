@@ -1,0 +1,58 @@
+name: "Build"
+
+on:
+  workflow_call:
+
+env:
+  GIT_CONFIG_GLOBAL: "/root/.gitconfig" # fix path in container (https://github.com/actions/runner/issues/2033)
+  CI_BRANCH_NAME: "${{ github.head_ref != '' && github.head_ref || github.ref_name }}"
+
+jobs:
+
+  ### BINARY ###
+
+  binary:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    strategy:
+      matrix:
+        os_family: ["darwin", "linux"]
+        architecture: ["arm64", "amd64"]
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 50
+          fetch-tags: true
+
+      - run: "make build/binary os_family=${{ matrix.os_family }} architecture=${{ matrix.architecture }}"
+
+      - name: "Upload binary artifacts"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "sdvg-${{ matrix.os_family }}-${{ matrix.architecture }}"
+          path: "build/out/*"
+
+  ### DOCKER ###
+
+  docker:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+    strategy:
+      matrix:
+        os_family: ["linux"]
+        architecture: ["amd64", "arm64"]
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 50
+          fetch-tags: true
+
+      - run: "make build/docker os_family=${{ matrix.os_family }} architecture=${{ matrix.architecture }}"
+
+      - name: "Upload binary artifacts"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "sdvg-${{ matrix.os_family }}-${{ matrix.architecture }}-image.tar.gz"
+          path: "build/out/*"
