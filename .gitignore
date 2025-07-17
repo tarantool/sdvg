@@ -37,6 +37,14 @@ vendor/
 # Go workspace file
 go.work
 
+### VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
 ### JetBrains
 
 # User-specific stuff
