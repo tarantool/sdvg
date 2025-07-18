@@ -1,5 +1,10 @@
 # Synthetic Data Values Generator (SDVG)
 
+## Language
+
+- **English**
+- [Русский](README.ru.md)
+
 ## Description
 
 SDVG (Synthetic Data Values Generator) is a tool for generating synthetic data.
@@ -42,10 +47,54 @@ Output formats:
 - HTTP API;
 - Tarantool Column Store HTTP API.
 
+## Quick Start
+
+Here's an example of a data model that generates 10,000 user rows and writes them to a CSV file:
+
+```yaml
+output:
+  type: csv
+models:
+  user:
+    rows_count: 10000
+    columns:
+      - name: id
+        type: uuid
+      - name: name
+        type: string
+        type_params:
+          logical_type: first_name
+```
+
+Save this as `simple_model.yml`, then run:
+
+```bash
+./sdvg generate simple_model.yml
+```
+
+This will create a CSV file with fake user data like `id` and `name`.
+
+To launch the generator in interactive mode:
+
+```bash
+./sdvg
+```
+
+To view available commands and arguments:
+
+```bash
+./sdvg -h
+./sdvg --help
+./sdvg generate -h
+```
+
+More information can be found in the [user guide](./doc/en/usage.md).
+
 ## Documentation
 
-- [Русская документация](./doc/ru/index.md)
-- [English documentation](./doc/en/index.md)
+- [User Guide](./doc/en/usage.md)
+- [Developer Guide](./doc/en/contributing.md)
+- [Goals and Standards Compliance](./doc/en/overview.md)
 - [Changelog](./CHANGELOG.md)
 - [License](./LICENSE)
 
