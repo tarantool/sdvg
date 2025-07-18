@@ -37,6 +37,10 @@ vendor/
 # Go workspace file
 go.work
 
+### VSCode
+
+.vscode
+
 ### JetBrains
 
 # User-specific stuff
