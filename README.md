@@ -72,7 +72,15 @@ Save this as `simple_model.yml`, then run:
 ./sdvg generate simple_model.yml
 ```
 
-This will create a CSV file with fake user data like `id` and `name`.
+This will create a CSV file with fake user data like `id` and `name`:
+
+```csv
+id,name
+c8a53cfd-1089-4154-9627-560fbbea2fef,Sutherlan
+b5c024f8-3f6f-43d3-b021-0bb2305cc680,Hilton
+5adf8218-7b53-41bb-873d-c5768ca6afa2,Craggy
+...
+```
 
 To launch the generator in interactive mode:
 
