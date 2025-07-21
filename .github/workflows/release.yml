@@ -23,7 +23,11 @@ jobs:
       - name: "Extract release notes for ${{ inputs.release_name }}"
         env:
           RELEASE_NAME: "${{ inputs.release_name }}"
-        run: 'awk "/^## .*$RELEASE_NAME/ { flag=1; next } /^## / { flag=0 } flag" CHANGELOG.md > release-notes.txt'
+        run: |
+          awk "/^## .*$RELEASE_NAME/ { flag=1; next } /^## / { flag=0 } flag" CHANGELOG.md > release-notes.txt
+          if [ -z "$(grep -vE '^$' release-notes.txt || echo)" ]; then
+            echo "No changes since last release" > release-notes.txt
+          fi
 
       - name: "Remove old version of release"
         if: "${{ inputs.release_name == 'latest' }}"
@@ -33,13 +37,10 @@ jobs:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: "Create release"
-        uses: "ncipollo/release-action@v1"
+        uses: "softprops/action-gh-release@v2"
         with:
-          tag: "${{ inputs.release_name }}"
-          bodyFile: "release-notes.txt"
-          artifacts: "build/out/sdvg-*"
-          draft: false
-          prerelease: false
-          makeLatest: "${{ inputs.release_name == 'latest' }}"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: "${{ inputs.release_name }}"
+          body_path: "release-notes.txt"
+          files: "build/out/sdvg-*"
+          prerelease: "${{ inputs.release_name == 'latest' }}"
+          make_latest: "${{ inputs.release_name != 'latest' }}"
