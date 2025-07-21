@@ -1,16 +1,5 @@
 # Synthetic Data Values Generator (SDVG)
 
-[![CI][actions-badge]][actions-url]
-[![Release][release-badge]][release-url]
-[![Coverage Status][test-coverage-badge]][test-coverage-url]
-
-[actions-badge]: https://github.com/tarantool/sdvg/actions/workflows/ci.yml/badge.svg
-[actions-url]: https://github.com/tarantool/sdvg/actions/workflows/ci.yml
-[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg?label=release
-[release-url]: https://github.com/tarantool/sdvg/releases/latest
-[test-coverage-badge]: https://coveralls.io/repos/github/tarantool/sdvg/badge.svg?branch=badges
-[test-coverage-url]: https://coveralls.io/github/tarantool/sdvg?branch=badges
-
 ## Language
 
 - **English**
@@ -123,4 +112,3 @@ More information can be found in the [user guide](./doc/en/usage.md).
 - [@ReverseTM](https://github.com/ReverseTM)
 - [@choseenonee](https://github.com/choseenonee)
 - [@Hoodie-Huuuuu](https://github.com/Hoodie-Huuuuu)
-
