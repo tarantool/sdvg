@@ -45,8 +45,6 @@ jobs:
       image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
     steps:
       - uses: "actions/checkout@v4"
-        with:
-          fetch-depth: 50
 
       - name: "Measuring test coverage"
         run: "make test/cover"
@@ -57,12 +55,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: "coverage.out"
           format: "golang"
-
-#      - name: "Send coverage"
-#        uses: "shogo82148/actions-goveralls@v1"
-#        with:
-#          github-token: "${{ secrets.COVERALLS_TOKEN }}"
-#          path-to-profile: "coverage.out"
 
   ### PERFORMANCE ###
 
