@@ -49,6 +49,21 @@ jobs:
       - name: "Measuring test coverage"
         run: "make test/cover"
 
+      - name: "Install goveralls"
+        run: "go install github.com/mattn/goveralls@latest"
+
+      - name: "Send coverage"
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: "goveralls -coverprofile=covprofile -service=github"
+
+#      - name: Upload coverage to Coveralls
+#        uses: coverallsapp/github-action@v2
+#        with:
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          path-to-lcov: coverage.out
+#          format: golang
+
   ### PERFORMANCE ###
 
   performance:
