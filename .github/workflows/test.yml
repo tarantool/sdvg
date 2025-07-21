@@ -51,11 +51,18 @@ jobs:
       - name: "Measuring test coverage"
         run: "make test/cover"
 
-      - name: "Send coverage"
-        uses: "shogo82148/actions-goveralls@v1"
+      - name: "Upload coverage to Coveralls"
+        uses: "coverallsapp/github-action@v2"
         with:
-          github-token: "${{ secrets.COVERALLS_TOKEN }}"
-          path-to-profile: "coverage.out"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: "coverage.out"
+          format: "golang"
+
+#      - name: "Send coverage"
+#        uses: "shogo82148/actions-goveralls@v1"
+#        with:
+#          github-token: "${{ secrets.COVERALLS_TOKEN }}"
+#          path-to-profile: "coverage.out"
 
   ### PERFORMANCE ###
 
