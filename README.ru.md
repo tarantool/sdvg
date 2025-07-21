@@ -1,13 +1,16 @@
 # Synthetic Data Values Generator (SDVG)
 
 [![Release][release-badge]][release-url]
+[![Pre-release][pre-release-badge]][pre-release-url]
 [![CI][actions-badge]][actions-url]
 [![Coverage Status][test-coverage-badge]][test-coverage-url]
 [![Language][language-badge]][language-url]
 [![License][license-badge]][license-url]
 
-[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg?filter=!latest
-[release-url]: https://github.com/tarantool/sdvg/releases
+[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg
+[release-url]: https://github.com/tarantool/sdvg/releases/latest/
+[pre-release-badge]: https://img.shields.io/badge/pre--release-latest-orange
+[pre-release-url]: https://github.com/tarantool/sdvg/releases/tag/latest/
 [actions-badge]: https://img.shields.io/github/check-runs/tarantool/sdvg/master
 [actions-url]: https://github.com/tarantool/sdvg/actions
 [test-coverage-badge]: https://img.shields.io/coverallsCoverage/github/tarantool/sdvg?branch=master
@@ -16,6 +19,8 @@
 [language-url]: https://github.com/tarantool/sdvg/search?l=go
 [license-badge]: https://img.shields.io/github/license/tarantool/sdvg
 [license-url]: ./LICENSE
+
+![scheme.png](asset/scheme.png)
 
 ## Язык
 
@@ -63,6 +68,41 @@ SDVG (Synthetic Data Values Generator) — это инструмент для г
 - Parquet файлы;
 - HTTP API;
 - Tarantool Column Store HTTP API.
+
+## Установка
+
+Вы можете установить SDVG, скачав готовый бинарный файл нужной версии
+со [страницы релизов на GitHub](https://github.com/tarantool/sdvg/releases).
+
+Скачайте бинарный файл для вашей операционной системы:
+
+```shell
+# Linux (x86-64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-linux-amd64
+```
+
+```shell
+# Linux (ARM64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-linux-arm64
+```
+
+```shell
+# macOS (x86-64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-darwin-amd64
+```
+
+```shell
+# macOS (ARM64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-darwin-arm64
+```
+
+Установите бинарный файл в систему:
+
+```shell
+chmod +x sdvg
+sudo mv sdvg /usr/local/bin/sdvg
+sdvg version
+```
 
 ## Быстрый старт
 
