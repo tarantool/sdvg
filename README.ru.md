@@ -1,15 +1,21 @@
 # Synthetic Data Values Generator (SDVG)
 
-[![CI][actions-badge]][actions-url]
 [![Release][release-badge]][release-url]
+[![CI][actions-badge]][actions-url]
 [![Coverage Status][test-coverage-badge]][test-coverage-url]
+[![Language][language-badge]][language-url]
+[![License][license-badge]][license-url]
 
-[actions-badge]: https://img.shields.io/github/check-runs/tarantool/sdvg/master
-[actions-url]: https://github.com/tarantool/sdvg/actions
 [release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg?filter=!latest
 [release-url]: https://github.com/tarantool/sdvg/releases
+[actions-badge]: https://img.shields.io/github/check-runs/tarantool/sdvg/master
+[actions-url]: https://github.com/tarantool/sdvg/actions
 [test-coverage-badge]: https://img.shields.io/coverallsCoverage/github/tarantool/sdvg?branch=master
 [test-coverage-url]: https://coveralls.io/github/tarantool/sdvg?branch=master
+[language-badge]: https://img.shields.io/github/languages/top/tarantool/sdvg
+[language-url]: https://github.com/tarantool/sdvg/search?l=go
+[license-badge]: https://img.shields.io/github/license/tarantool/sdvg
+[license-url]: ./LICENSE
 
 ## Язык
 
