@@ -11,10 +11,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	openaiMock "sdvg/internal/generator/cli/openai/mock"
-	"sdvg/internal/generator/usecase"
-	usecaseMock "sdvg/internal/generator/usecase/mock"
+	openaiMock "github.com/tarantool/sdvg/internal/generator/cli/openai/mock"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	usecaseMock "github.com/tarantool/sdvg/internal/generator/usecase/mock"
 )
 
 func TestHandleGenerate(t *testing.T) {

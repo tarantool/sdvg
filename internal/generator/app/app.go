@@ -11,11 +11,10 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/cli"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/usecase"
-	"sdvg/internal/generator/usecase/general"
+	"github.com/tarantool/sdvg/internal/generator/cli"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general"
 )
 
 type App struct {

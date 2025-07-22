@@ -4,7 +4,7 @@ package mock
 
 import (
 	context "context"
-	usecase "sdvg/internal/generator/usecase"
+	usecase "github.com/tarantool/sdvg/internal/generator/usecase"
 
 	mock "github.com/stretchr/testify/mock"
 )

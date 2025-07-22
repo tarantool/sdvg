@@ -7,11 +7,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sashabaranov/go-openai"
-
-	openaiService "sdvg/internal/generator/cli/openai"
-	"sdvg/internal/generator/cli/openai/prompts"
-	"sdvg/internal/generator/common"
-	openaiAPI "sdvg/internal/openai"
+	openaiService "github.com/tarantool/sdvg/internal/generator/cli/openai"
+	"github.com/tarantool/sdvg/internal/generator/cli/openai/prompts"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	openaiAPI "github.com/tarantool/sdvg/internal/openai"
 )
 
 // OpenAIService type is implementation of service for OpenAI.

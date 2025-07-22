@@ -3,7 +3,7 @@ package progress
 import (
 	"sync"
 
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // Handler type is storage for progresses.

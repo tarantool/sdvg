@@ -7,8 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
 )
 
 // ValidateFileFormat returns an error if the file format is not supported.

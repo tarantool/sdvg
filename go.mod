@@ -1,4 +1,4 @@
-module sdvg
+module github.com/tarantool/sdvg
 
 go 1.23.8
 

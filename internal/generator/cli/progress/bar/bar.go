@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/cli/progress"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
-
-	"sdvg/internal/generator/cli/progress"
-	"sdvg/internal/generator/usecase"
 )
 
 const intervals = 50

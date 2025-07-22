@@ -5,8 +5,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // Verify interface compliance in compile time.

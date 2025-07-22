@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/cli/utils"
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 // generationMode type is used to describe generation modes.

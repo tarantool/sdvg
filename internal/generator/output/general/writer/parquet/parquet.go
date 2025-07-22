@@ -22,9 +22,8 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output/general/writer"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer"
 )
 
 const (

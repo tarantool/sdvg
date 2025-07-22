@@ -9,9 +9,8 @@ import (
 	"slices"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output"
 )
 
 // Verify interface compliance in compile time.

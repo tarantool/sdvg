@@ -10,12 +10,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/openai"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/openai"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // serveOptions type is used to describe 'serve' command options.

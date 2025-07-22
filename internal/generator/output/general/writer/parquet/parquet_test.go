@@ -18,8 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 //nolint:maintidx

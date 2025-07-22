@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/common"
 )
 
 const (

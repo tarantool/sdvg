@@ -3,16 +3,15 @@ package sdvg
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/commands/config"
-	"sdvg/internal/generator/cli/commands/generate"
-	"sdvg/internal/generator/cli/commands/serve"
-	"sdvg/internal/generator/cli/commands/validate"
-	"sdvg/internal/generator/cli/commands/version"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/streams"
-	"sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/config"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/generate"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/serve"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/validate"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/version"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
 )
 
 // NewSDVGCommand creates 'sdvg' command for CLI.

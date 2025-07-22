@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"sdvg/internal/generator/cli/progress"
-	"sdvg/internal/generator/cli/utils"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/progress"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // Verify interface compliance in compile time.

@@ -8,8 +8,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	openaiMocks "sdvg/internal/openai/mock"
+	openaiMocks "github.com/tarantool/sdvg/internal/openai/mock"
 )
 
 func TestGetBaseURL(t *testing.T) {

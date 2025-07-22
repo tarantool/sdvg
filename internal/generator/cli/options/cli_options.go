@@ -3,11 +3,11 @@ package options
 import (
 	"os"
 
-	"sdvg/internal/generator/cli/openai"
-	"sdvg/internal/generator/cli/render"
-	"sdvg/internal/generator/cli/streams"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/openai"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // Option type is a value wrapper with a flag indicating whether its value has been modified.

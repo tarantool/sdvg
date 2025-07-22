@@ -11,12 +11,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
-	outputGeneral "sdvg/internal/generator/output/general"
-	"sdvg/internal/generator/usecase"
-	useCaseGeneral "sdvg/internal/generator/usecase/general"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	outputGeneral "github.com/tarantool/sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	useCaseGeneral "github.com/tarantool/sdvg/internal/generator/usecase/general"
 )
 
 const (

@@ -1,6 +1,6 @@
 package value
 
-import "sdvg/internal/generator/models"
+import "github.com/tarantool/sdvg/internal/generator/models"
 
 // Verify interface compliance in compile time.
 var _ Generator = (*IntegerGenerator)(nil)

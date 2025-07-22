@@ -11,14 +11,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output"
-	"sdvg/internal/generator/usecase"
-	"sdvg/internal/generator/usecase/general/backup"
-	"sdvg/internal/generator/usecase/general/generator"
-	"sdvg/internal/generator/usecase/general/progress"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/backup"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/generator"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/progress"
 )
 
 const TTL = 5 * time.Minute

@@ -11,17 +11,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/progress"
-	"sdvg/internal/generator/cli/progress/bar"
-	"sdvg/internal/generator/cli/progress/log"
-	"sdvg/internal/generator/cli/render"
-	"sdvg/internal/generator/cli/utils"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output/general"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/progress"
+	"github.com/tarantool/sdvg/internal/generator/cli/progress/bar"
+	"github.com/tarantool/sdvg/internal/generator/cli/progress/log"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 // generateOptions type is used to describe 'generate' command options.

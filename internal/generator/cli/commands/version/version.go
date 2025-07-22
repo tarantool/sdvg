@@ -4,9 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
 )
 
 // NewVersionCommand creates 'version' command for CLI.

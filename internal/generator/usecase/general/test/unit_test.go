@@ -12,11 +12,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/models"
-	outputMock "sdvg/internal/generator/output/mock"
-	"sdvg/internal/generator/usecase"
-	usecaseGeneral "sdvg/internal/generator/usecase/general"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	outputMock "github.com/tarantool/sdvg/internal/generator/output/mock"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	usecaseGeneral "github.com/tarantool/sdvg/internal/generator/usecase/general"
 )
 
 const (

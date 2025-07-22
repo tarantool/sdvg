@@ -3,8 +3,8 @@ package tcs
 import (
 	"context"
 
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output/general/writer/http"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/http"
 )
 
 // Writer type is implementation of writer to TCS destination storage.

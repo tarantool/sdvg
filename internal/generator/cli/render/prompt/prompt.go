@@ -14,10 +14,9 @@ import (
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/manifoldco/promptui"
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/cli/render"
-	"sdvg/internal/generator/cli/render/assets"
-	"sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/render/assets"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
 )
 
 const backNavigation = "back"

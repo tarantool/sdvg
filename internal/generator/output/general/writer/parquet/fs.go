@@ -8,8 +8,7 @@ import (
 
 	"github.com/apache/arrow-go/v18/parquet"
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/common"
 )
 
 func NewFileSystem() FileSystem {

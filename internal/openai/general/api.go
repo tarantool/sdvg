@@ -5,9 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sashabaranov/go-openai"
-
-	"sdvg/internal/generator/models"
-	openAI "sdvg/internal/openai"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	openAI "github.com/tarantool/sdvg/internal/openai"
 )
 
 type OpenAIAPI struct {

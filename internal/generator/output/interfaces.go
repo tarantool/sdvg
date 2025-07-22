@@ -3,7 +3,7 @@ package output
 import (
 	"context"
 
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 // Output interface implementation should send all rows

@@ -5,10 +5,9 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/usecase/general/generator/value"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/generator/value"
 )
 
 type rangeGenerator struct {
