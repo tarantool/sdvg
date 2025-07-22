@@ -425,15 +425,15 @@ models:
 Для запуска в интерактивном режиме достаточно запустить бинарный файл SDVG:
 
 ```shell
-./sdvg
+sdvg
 ```
 
 Для получения информации о возможных командах и их аргументах:
 
 ```shell
-./sdvg -h
-./sdvg --help
-./sdvg generate -h
+sdvg -h
+sdvg --help
+sdvg generate -h
 ```
 
 ### Генерация данных
@@ -445,7 +445,7 @@ models:
 Для запуска генерации с указанием файла конфигурации генерации:
 
 ```shell
-./sdvg generate ./models.yml
+sdvg generate ./models.yml
 ```
 
 ### Игнорирование конфликтов
@@ -454,7 +454,7 @@ models:
 и продолжить генерацию без дополнительных сообщений, используйте флаг `-F` или `--force`:
 
 ```shell
-./sdvg generate --force ./models.yml
+sdvg generate --force ./models.yml
 ```
 
 ### Продолжение генерации
@@ -462,7 +462,7 @@ models:
 Для продолжения генерации с последней записанной строки:
 
 ```shell
-./sdvg generate --continue-generation ./models.yml
+sdvg generate --continue-generation ./models.yml
 ```
 
 > **Важно**: для корректного продолжения генерации нельзя менять конфигурацию генерации и уже сгенерированные данные.

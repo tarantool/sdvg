@@ -140,7 +140,7 @@ models:
 Save this as `simple_model.yml`, then run:
 
 ```bash
-./sdvg generate simple_model.yml
+sdvg generate simple_model.yml
 ```
 
 This will create a CSV file with fake user data like `id` and `name`:
@@ -156,15 +156,15 @@ b5c024f8-3f6f-43d3-b021-0bb2305cc680,Hilton
 To launch the generator in interactive mode:
 
 ```bash
-./sdvg
+sdvg
 ```
 
 To view available commands and arguments:
 
 ```bash
-./sdvg -h
-./sdvg --help
-./sdvg generate -h
+sdvg -h
+sdvg --help
+sdvg generate -h
 ```
 
 More information can be found in the [user guide](./doc/en/usage.md).
