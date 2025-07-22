@@ -71,6 +71,8 @@ Output formats:
 
 ## Installation
 
+### Standard installation
+
 You can install SDVG by downloading the appropriate binary version
 from the [GitHub Releases page](https://github.com/tarantool/sdvg/releases).
 
@@ -102,6 +104,18 @@ Install binary in your system:
 chmod +x sdvg
 sudo mv sdvg /usr/local/bin/sdvg
 sdvg version
+```
+
+### Compile and install from sources
+
+To compile and install this tool, you can use `go install` command:
+
+```shell
+# To get the specified version
+go install github.com/tarantool/sdvg@0.0.1
+# To get a version from the master branch
+go clean -modcache
+go install github.com/tarantool/sdvg@latest
 ```
 
 ## Quick Start

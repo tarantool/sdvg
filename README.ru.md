@@ -71,6 +71,8 @@ SDVG (Synthetic Data Values Generator) — это инструмент для г
 
 ## Установка
 
+### Стандартная установка
+
 Вы можете установить SDVG, скачав готовый бинарный файл нужной версии
 со [страницы релизов на GitHub](https://github.com/tarantool/sdvg/releases).
 
@@ -102,6 +104,18 @@ curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-da
 chmod +x sdvg
 sudo mv sdvg /usr/local/bin/sdvg
 sdvg version
+```
+
+### Сборка и установка из исходников
+
+Для сборки и установки этого инструмента можно использовать команду `go install`:
+
+```shell
+# Чтобы установить указанную версию
+go install github.com/tarantool/sdvg@0.0.1
+# Чтобы установить версию из ветки master
+go clean -modcache
+go install github.com/tarantool/sdvg@latest
 ```
 
 ## Быстрый старт
