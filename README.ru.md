@@ -103,6 +103,11 @@ curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-da
 ```shell
 chmod +x sdvg
 sudo mv sdvg /usr/local/bin/sdvg
+```
+
+Проверьте, что все работает правильно:
+
+```shell
 sdvg version
 ```
 
@@ -112,10 +117,16 @@ sdvg version
 
 ```shell
 # Чтобы установить указанную версию
-go install github.com/tarantool/sdvg@0.0.1
+go install github.com/tarantool/sdvg@0.0.2
 # Чтобы установить версию из ветки master
 go clean -modcache
 go install github.com/tarantool/sdvg@latest
+```
+
+Проверьте, что все работает правильно:
+
+```shell
+sdvg version
 ```
 
 ## Быстрый старт

@@ -103,6 +103,11 @@ Install binary in your system:
 ```shell
 chmod +x sdvg
 sudo mv sdvg /usr/local/bin/sdvg
+```
+
+Check that everything works correctly:
+
+```shell
 sdvg version
 ```
 
@@ -112,10 +117,16 @@ To compile and install this tool, you can use `go install` command:
 
 ```shell
 # To get the specified version
-go install github.com/tarantool/sdvg@0.0.1
+go install github.com/tarantool/sdvg@0.0.2
 # To get a version from the master branch
 go clean -modcache
 go install github.com/tarantool/sdvg@latest
+```
+
+Check that everything works correctly:
+
+```shell
+sdvg version
 ```
 
 ## Quick Start
