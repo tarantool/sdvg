@@ -10,10 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/cli/options"
-	rendererMock "sdvg/internal/generator/cli/render/mock"
-	"sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
 )
 
 func TestGetGenerationConfigPath(t *testing.T) {

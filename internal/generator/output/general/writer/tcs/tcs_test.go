@@ -10,8 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 func prepareField(t *testing.T, f models.Field) {

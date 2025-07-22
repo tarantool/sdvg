@@ -7,9 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/cli/openai"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/openai"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 type handlerOptions struct {

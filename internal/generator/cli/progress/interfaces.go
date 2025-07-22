@@ -1,6 +1,6 @@
 package progress
 
-import "sdvg/internal/generator/usecase"
+import "github.com/tarantool/sdvg/internal/generator/usecase"
 
 // Tracker interface implementation should display progress of tasks.
 type Tracker interface {

@@ -8,11 +8,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	openaiMock "sdvg/internal/generator/cli/openai/mock"
-	"sdvg/internal/generator/cli/options"
-	rendererMock "sdvg/internal/generator/cli/render/mock"
-	"sdvg/internal/generator/cli/streams"
+	openaiMock "github.com/tarantool/sdvg/internal/generator/cli/openai/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
 )
 
 func TestNewSQLQueryCommand(t *testing.T) {

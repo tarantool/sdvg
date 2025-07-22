@@ -11,11 +11,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
-	"sdvg/internal/generator/cli/utils"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output/general"
-	"sdvg/internal/generator/usecase"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
 )
 
 func setupRoutes(opts handlerOptions, e *echo.Echo) {

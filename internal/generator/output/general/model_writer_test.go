@@ -9,9 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 var (

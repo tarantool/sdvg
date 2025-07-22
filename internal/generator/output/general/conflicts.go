@@ -9,9 +9,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/output"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/output"
 )
 
 const filesToShow = 5

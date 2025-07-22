@@ -8,8 +8,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	openaiMock "sdvg/internal/openai/mock"
+	openaiMock "github.com/tarantool/sdvg/internal/openai/mock"
 )
 
 func TestPing(t *testing.T) {

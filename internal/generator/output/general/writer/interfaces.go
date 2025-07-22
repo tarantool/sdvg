@@ -1,7 +1,7 @@
 package writer
 
 import (
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 // Writer interface implementation should write data to destination storage in a specific format.

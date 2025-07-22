@@ -3,7 +3,7 @@ package value
 import (
 	"time"
 
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 // Verify interface compliance in compile time.

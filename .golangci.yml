@@ -47,7 +47,7 @@ linters-settings:
       - fmt\.Errorf$
   wrapcheck:
     ignorePackageGlobs:
-      - sdvg/*
+      - github.com/tarantool/sdvg/*
   depguard:
     rules:
       stderrors:

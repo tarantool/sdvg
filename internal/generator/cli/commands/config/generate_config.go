@@ -3,12 +3,11 @@ package config
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/openai"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/render"
-	"sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/openai"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
 )
 
 // generateConfigOptions type is used to describe 'generate-config' options.

@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
 )
 
 func TestNewVersionCommand(t *testing.T) {

@@ -16,12 +16,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output/general"
-	"sdvg/internal/generator/output/mock"
-	uc "sdvg/internal/generator/usecase"
-	usecase "sdvg/internal/generator/usecase/general"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/output/mock"
+	uc "github.com/tarantool/sdvg/internal/generator/usecase"
+	usecase "github.com/tarantool/sdvg/internal/generator/usecase/general"
 )
 
 const (

@@ -7,12 +7,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/render"
-	"sdvg/internal/generator/cli/utils"
-	"sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/render"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
+	"github.com/tarantool/sdvg/internal/generator/models"
 )
 
 // validateOptions type is used to describe 'validate-config' command options.

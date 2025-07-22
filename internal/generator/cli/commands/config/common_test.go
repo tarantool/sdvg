@@ -8,9 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	openaiMock "sdvg/internal/generator/cli/openai/mock"
-	rendererMock "sdvg/internal/generator/cli/render/mock"
+	openaiMock "github.com/tarantool/sdvg/internal/generator/cli/openai/mock"
+	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
 )
 
 func TestGetPathToSaveGenerationConfig(t *testing.T) {

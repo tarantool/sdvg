@@ -13,16 +13,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output"
-	"sdvg/internal/generator/output/general/writer"
-	"sdvg/internal/generator/output/general/writer/csv"
-	"sdvg/internal/generator/output/general/writer/devnull"
-	"sdvg/internal/generator/output/general/writer/http"
-	"sdvg/internal/generator/output/general/writer/parquet"
-	"sdvg/internal/generator/output/general/writer/tcs"
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/csv"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/devnull"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/http"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/parquet"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer/tcs"
 )
 
 const buffer = 100

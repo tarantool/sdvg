@@ -9,10 +9,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/output"
-	"sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/output"
+	"github.com/tarantool/sdvg/internal/generator/output/general"
 )
 
 func TestHandleBackup(t *testing.T) {

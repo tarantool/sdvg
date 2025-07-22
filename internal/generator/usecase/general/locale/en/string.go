@@ -5,11 +5,10 @@ import (
 	"log"
 	"slices"
 
+	"github.com/tarantool/sdvg/internal/generator/common"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale"
 	"gopkg.in/yaml.v3"
-
-	"sdvg/internal/generator/common"
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/usecase/general/locale"
 )
 
 // Verify interface compliance in compile time.

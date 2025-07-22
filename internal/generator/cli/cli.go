@@ -9,15 +9,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"sdvg/internal/generator/cli/commands"
-	"sdvg/internal/generator/cli/commands/sdvg"
-	clierrors "sdvg/internal/generator/cli/errors"
-	openaiService "sdvg/internal/generator/cli/openai/general"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/render/prompt"
-	"sdvg/internal/generator/logger/handlers"
-	openaiAPI "sdvg/internal/openai/general"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands/sdvg"
+	clierrors "github.com/tarantool/sdvg/internal/generator/cli/errors"
+	openaiService "github.com/tarantool/sdvg/internal/generator/cli/openai/general"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/render/prompt"
+	"github.com/tarantool/sdvg/internal/generator/logger/handlers"
+	openaiAPI "github.com/tarantool/sdvg/internal/openai/general"
 )
 
 // Cli type is used to describe SDVG CLI.

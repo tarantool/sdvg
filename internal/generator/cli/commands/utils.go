@@ -3,8 +3,7 @@ package commands
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	clierrors "sdvg/internal/generator/cli/errors"
+	clierrors "github.com/tarantool/sdvg/internal/generator/cli/errors"
 )
 
 // NoArgs validates args and returns an error if there are any args.

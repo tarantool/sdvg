@@ -8,12 +8,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/cli/options"
-	rendererMock "sdvg/internal/generator/cli/render/mock"
-	"sdvg/internal/generator/cli/streams"
-	"sdvg/internal/generator/usecase"
-	usecaseMock "sdvg/internal/generator/usecase/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/usecase"
+	usecaseMock "github.com/tarantool/sdvg/internal/generator/usecase/mock"
 )
 
 func TestGetGenerationConfigFilePath(t *testing.T) {

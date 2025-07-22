@@ -1,11 +1,11 @@
 package main
 
 import (
-	"sdvg/internal/generator/app"
+	"github.com/tarantool/sdvg/internal/generator/app"
 )
 
 var (
-	version string
+	version = "dev"
 )
 
 func main() {

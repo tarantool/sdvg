@@ -9,9 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/cli/render/assets"
-	streams "sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/cli/render/assets"
+	streams "github.com/tarantool/sdvg/internal/generator/cli/streams"
 )
 
 func TestLogo(t *testing.T) {

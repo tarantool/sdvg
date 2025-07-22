@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"sdvg/internal/generator/models"
-	"sdvg/internal/generator/usecase/general/locale"
-	"sdvg/internal/generator/usecase/general/locale/en"
-	"sdvg/internal/generator/usecase/general/locale/ru"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/en"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/ru"
 )
 
 // Verify interface compliance in compile time.

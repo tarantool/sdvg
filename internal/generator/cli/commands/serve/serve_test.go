@@ -9,13 +9,12 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
-
-	"sdvg/internal/generator/cli/commands"
-	openaiMock "sdvg/internal/generator/cli/openai/mock"
-	"sdvg/internal/generator/cli/options"
-	"sdvg/internal/generator/cli/streams"
-	"sdvg/internal/generator/models"
-	usecaseMock "sdvg/internal/generator/usecase/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	openaiMock "github.com/tarantool/sdvg/internal/generator/cli/openai/mock"
+	"github.com/tarantool/sdvg/internal/generator/cli/options"
+	"github.com/tarantool/sdvg/internal/generator/cli/streams"
+	"github.com/tarantool/sdvg/internal/generator/models"
+	usecaseMock "github.com/tarantool/sdvg/internal/generator/usecase/mock"
 )
 
 func TestSetupFlags(t *testing.T) {
