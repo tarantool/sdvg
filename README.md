@@ -1,13 +1,16 @@
 # Synthetic Data Values Generator (SDVG)
 
 [![Release][release-badge]][release-url]
+[![Pre-release][pre-release-badge]][pre-release-url]
 [![CI][actions-badge]][actions-url]
 [![Coverage Status][test-coverage-badge]][test-coverage-url]
 [![Language][language-badge]][language-url]
 [![License][license-badge]][license-url]
 
-[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg?filter=!latest
-[release-url]: https://github.com/tarantool/sdvg/releases
+[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg
+[release-url]: https://github.com/tarantool/sdvg/releases/latest/
+[pre-release-badge]: https://img.shields.io/badge/pre--release-latest-orange
+[pre-release-url]: https://github.com/tarantool/sdvg/releases/tag/latest/
 [actions-badge]: https://img.shields.io/github/check-runs/tarantool/sdvg/master
 [actions-url]: https://github.com/tarantool/sdvg/actions
 [test-coverage-badge]: https://img.shields.io/coverallsCoverage/github/tarantool/sdvg?branch=master
@@ -16,6 +19,8 @@
 [language-url]: https://github.com/tarantool/sdvg/search?l=go
 [license-badge]: https://img.shields.io/github/license/tarantool/sdvg
 [license-url]: ./LICENSE
+
+![scheme.png](asset/scheme.png)
 
 ## Language
 
@@ -64,6 +69,66 @@ Output formats:
 - HTTP API;
 - Tarantool Column Store HTTP API.
 
+## Installation
+
+### Standard installation
+
+You can install SDVG by downloading the appropriate binary version
+from the [GitHub Releases page](https://github.com/tarantool/sdvg/releases).
+
+Download binary for your OS:
+
+```shell
+# Linux (x86-64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-linux-amd64
+```
+
+```shell
+# Linux (ARM64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-linux-arm64
+```
+
+```shell
+# macOS (x86-64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-darwin-amd64
+```
+
+```shell
+# macOS (ARM64)
+curl -Lo sdvg https://github.com/tarantool/sdvg/releases/latest/download/sdvg-darwin-arm64
+```
+
+Install binary in your system:
+
+```shell
+chmod +x sdvg
+sudo mv sdvg /usr/local/bin/sdvg
+```
+
+Check that everything works correctly:
+
+```shell
+sdvg version
+```
+
+### Compile and install from sources
+
+To compile and install this tool, you can use `go install` command:
+
+```shell
+# To get the specified version
+go install github.com/tarantool/sdvg@0.0.2
+# To get a version from the master branch
+go clean -modcache
+go install github.com/tarantool/sdvg@latest
+```
+
+Check that everything works correctly:
+
+```shell
+sdvg version
+```
+
 ## Quick Start
 
 Here's an example of a data model that generates 10,000 user rows and writes them to a CSV file:
@@ -86,7 +151,7 @@ models:
 Save this as `simple_model.yml`, then run:
 
 ```bash
-./sdvg generate simple_model.yml
+sdvg generate simple_model.yml
 ```
 
 This will create a CSV file with fake user data like `id` and `name`:
@@ -102,15 +167,15 @@ b5c024f8-3f6f-43d3-b021-0bb2305cc680,Hilton
 To launch the generator in interactive mode:
 
 ```bash
-./sdvg
+sdvg
 ```
 
 To view available commands and arguments:
 
 ```bash
-./sdvg -h
-./sdvg --help
-./sdvg generate -h
+sdvg -h
+sdvg --help
+sdvg generate -h
 ```
 
 More information can be found in the [user guide](./doc/en/usage.md).
