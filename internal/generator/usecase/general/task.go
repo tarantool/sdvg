@@ -221,7 +221,7 @@ func (t *Task) generateAndSaveValues(ctx context.Context) error {
 					generators = append(generators, t.generators[columnKey].NewBatchGenerator(rowsCount))
 				}
 
-				pool.Submit(ctx, outputSyncer.WorkerSyncer(), modelName, generators, rowsCount)
+				pool.Submit(ctx, outputSyncer.WorkerSyncer(), model, generators, rowsCount)
 			}
 		}()
 	}
@@ -255,7 +255,7 @@ func (t *Task) skipRows() {
 // generateAndSaveBatch function generate batch of values for selected column and send it to output.
 func (t *Task) generateAndSaveBatch(
 	ctx context.Context, outputSync *common.WorkerSyncer,
-	modelName string, generators []*generator.BatchGenerator, count uint64,
+	model *models.Model, generators []*generator.BatchGenerator, count uint64,
 ) error {
 	defer outputSync.Done(ctx)
 
@@ -266,29 +266,42 @@ func (t *Task) generateAndSaveBatch(
 		}
 	}
 
-	for g, gen := range generators {
-		for i := range count {
+	sortedColumn, err := models.TopologicalSort(model.Columns)
+	if err != nil {
+		return err
+	}
+
+	originIndexes := make(map[string]int, len(model.Columns))
+	for index, column := range model.Columns {
+		originIndexes[column.Name] = index
+	}
+
+	for i := range count {
+		generatedValues := make(map[string]any)
+
+		for _, columnName := range sortedColumn {
 			if common.CtxClosed(ctx) {
 				return &common.ContextCancelError{}
 			}
 
-			value, err := gen.Value()
+			value, err := generators[originIndexes[columnName]].Value(generatedValues)
 			if err != nil {
 				return errors.WithMessage(err, "failed to get or generate value")
 			}
 
-			batch[i].Values[g] = value
+			generatedValues[columnName] = value
+			batch[i].Values[originIndexes[columnName]] = value
 		}
 	}
 
 	outputSync.WaitPrevious(ctx)
 
-	err := t.output.HandleRowsBatch(ctx, modelName, batch)
+	err = t.output.HandleRowsBatch(ctx, model.Name, batch)
 	if err != nil {
 		return errors.WithMessage(err, "failed to save batch to output")
 	}
 
-	t.progress.Add(modelName, count)
+	t.progress.Add(model.Name, count)
 
 	return nil
 }

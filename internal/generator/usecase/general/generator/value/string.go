@@ -1,6 +1,7 @@
 package value
 
 import (
+	"github.com/flosch/pongo2"
 	"math"
 	"math/big"
 	"slices"
@@ -21,6 +22,7 @@ type StringGenerator struct {
 	*models.ColumnStringParams
 	totalValuesCount uint64
 	localeModule     locale.LocalModule
+	template         *pongo2.Template
 	charset          []rune
 	countByPrefix    []float64
 	sumByPrefix      []float64
@@ -29,6 +31,15 @@ type StringGenerator struct {
 
 //nolint:cyclop
 func (g *StringGenerator) Prepare() error {
+	if g.Template != "" {
+		template, err := pongo2.FromString(g.Template)
+		if err != nil {
+			return err
+		}
+
+		g.template = template
+	}
+
 	switch g.Locale {
 	case "ru":
 		g.localeModule = ru.NewLocaleModule(g.LogicalType, g.MinLength, g.MaxLength)
@@ -171,8 +182,22 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 }
 
 // templateString returns n-th string by template.
-func (g *StringGenerator) templateString(number float64) string {
-	val := []rune(g.Template)
+func (g *StringGenerator) templateString(number float64, generatedValues map[string]any) (string, error) {
+	generatedValues["pattern"] = func(pattern string) string {
+		return g.patternString(number, pattern)
+	}
+
+	val, err := g.template.Execute(generatedValues)
+	if err != nil {
+		return "", err
+	}
+
+	return val, nil
+}
+
+// patternString returns n-th string by pattern.
+func (g *StringGenerator) patternString(number float64, pattern string) string {
+	val := []rune(pattern)
 	index := number / float64(g.totalValuesCount)
 
 	for i := range val {
@@ -410,9 +435,9 @@ func (g *StringGenerator) simpleString(number float64) string {
 }
 
 // Value returns n-th string from range.
-func (g *StringGenerator) Value(number float64) (any, error) {
+func (g *StringGenerator) Value(number float64, row map[string]any) (any, error) {
 	if g.Template != "" {
-		return g.templateString(number), nil
+		return g.templateString(number, row)
 	}
 
 	switch g.LogicalType {
