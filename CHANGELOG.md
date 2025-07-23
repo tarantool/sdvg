@@ -38,3 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Data partitioning
 - Ability to continue generation
 - Availability to ignore some models for generation
+
+### Changed
+
+- String templates replaced with jinja like
