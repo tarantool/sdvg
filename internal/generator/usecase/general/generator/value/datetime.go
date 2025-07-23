@@ -26,7 +26,7 @@ func (g *DateTimeGenerator) SetTotalCount(totalValuesCount uint64) error {
 }
 
 // Value returns n-th date from range.
-func (g *DateTimeGenerator) Value(number float64) (any, error) {
+func (g *DateTimeGenerator) Value(number float64, _ map[string]any) (any, error) {
 	fromSec := g.From.Unix()
 	toSec := g.To.Unix()
 

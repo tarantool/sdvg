@@ -437,9 +437,9 @@ func TestString(t *testing.T) {
 		{&models.ColumnStringParams{LogicalType: models.LastNameType, MinLength: 4, MaxLength: 7}, 4, 7},
 		{&models.ColumnStringParams{LogicalType: models.PhoneType, MinLength: 10, MaxLength: 10}, 10, 10},
 		{&models.ColumnStringParams{MinLength: 100, MaxLength: 100}, 100, 100},
-		{&models.ColumnStringParams{Template: "AAaa00##", Locale: "en"}, 8, 8},
-		{&models.ColumnStringParams{Template: "AAaa00##", Locale: "ru"}, 8, 8},
-		{&models.ColumnStringParams{Template: "0123456789012345678901234567890123456789"}, 40, 40},
+		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "en"}, 8, 8},
+		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "ru"}, 8, 8},
+		{&models.ColumnStringParams{Template: "{{ pattern('0123456789012345678901234567890123456789') }}"}, 40, 40},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 3, MaxLength: 5}, 3, 5},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512}, 510, 512},
@@ -449,7 +449,7 @@ func TestString(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		column := &models.Column{Type: "string", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{Name: "test", Type: "string", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
 
 		handled := checkType(t, column, "")
 		strValue, ok := handled[0].Values[0].(string)
@@ -599,7 +599,7 @@ func TestIdempotence(t *testing.T) {
 						Name: "passport",
 						Type: "string",
 						Ranges: []*models.Params{{TypeParams: &models.ColumnStringParams{
-							Template: "AA 00 000 000",
+							Template: "{{ pattern('AA 00 000 000') }}",
 						},
 							NullPercentage: 0.5}},
 					},
