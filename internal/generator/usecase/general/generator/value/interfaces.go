@@ -9,5 +9,5 @@ type Generator interface {
 	// Value method should return ordered unique value by number
 	Value(number float64, generatedValues map[string]any) (any, error)
 	// ValuesCount method should return the number of possible values to generate
-	ValuesCount() float64
+	ValuesCount(distinctValuesCountByColumn map[string]uint64) float64
 }

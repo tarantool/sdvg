@@ -37,6 +37,6 @@ func (g *EnumGenerator) Value(number float64, _ map[string]any) (any, error) {
 	return g.Values[idx], nil
 }
 
-func (g *EnumGenerator) ValuesCount() float64 {
+func (g *EnumGenerator) ValuesCount(_ map[string]uint64) float64 {
 	return float64(len(g.Values))
 }
