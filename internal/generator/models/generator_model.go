@@ -30,8 +30,9 @@ type Model struct {
 	RowsPerFile   uint64  `backup:"true"      json:"rows_per_file" yaml:"rows_per_file"`
 	ModelDir      string  `backup:"true"      json:"model_dir"     yaml:"model_dir"`
 	// The columns from the partitioning key with PartitionColumn.WriteToOutput == false, must be at the end of slice.
-	Columns          []*Column          `backup:"true" json:"columns"           yaml:"columns"`
-	PartitionColumns []*PartitionColumn `backup:"true" json:"partition_columns" yaml:"partition_columns"`
+	Columns                 []*Column `backup:"true" json:"columns" yaml:"columns"`
+	ColumnsTopologicalOrder []string
+	PartitionColumns        []*PartitionColumn `backup:"true" json:"partition_columns" yaml:"partition_columns"`
 }
 
 // PartitionColumn type is used to describe partition parameters for column.
@@ -79,6 +80,13 @@ func (m *Model) Parse() error {
 	}
 
 	m.shiftColumnsToEnd(nonWriteableColumns)
+
+	sortedColumns, err := topologicalSort(m.Columns)
+	if err != nil {
+		return errors.WithMessage(err, "failed to sorting columns by dependencies")
+	}
+
+	m.ColumnsTopologicalOrder = sortedColumns
 
 	return nil
 }

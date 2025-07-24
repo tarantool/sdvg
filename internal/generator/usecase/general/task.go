@@ -84,6 +84,8 @@ func newGenerators(cfg *models.GenerationConfig) (map[string]*generator.ColumnGe
 	generators := make(map[string]*generator.ColumnGenerator)
 
 	for modelName, model := range cfg.Models {
+		distinctValuesCountByColumn := make(map[string]uint64)
+
 		for _, column := range model.Columns {
 			dataModelName := modelName
 			dataModel := model
@@ -98,7 +100,7 @@ func newGenerators(cfg *models.GenerationConfig) (map[string]*generator.ColumnGe
 			columnKey := common.GetKey(modelName, column.Name)
 
 			gen, err := generator.NewColumnGenerator(
-				cfg.RandomSeed,
+				cfg.RandomSeed, distinctValuesCountByColumn,
 				modelName, model, column,
 				dataModelName, dataModel, dataColumn,
 			)
@@ -266,11 +268,6 @@ func (t *Task) generateAndSaveBatch(
 		}
 	}
 
-	sortedColumn, err := models.TopologicalSort(model.Columns)
-	if err != nil {
-		return err
-	}
-
 	originIndexes := make(map[string]int, len(model.Columns))
 	for index, column := range model.Columns {
 		originIndexes[column.Name] = index
@@ -279,24 +276,26 @@ func (t *Task) generateAndSaveBatch(
 	for i := range count {
 		generatedValues := make(map[string]any)
 
-		for _, columnName := range sortedColumn {
+		for _, columnName := range model.ColumnsTopologicalOrder {
 			if common.CtxClosed(ctx) {
 				return &common.ContextCancelError{}
 			}
 
-			value, err := generators[originIndexes[columnName]].Value(generatedValues)
+			idx := originIndexes[columnName]
+
+			value, err := generators[idx].Value(generatedValues)
 			if err != nil {
 				return errors.WithMessage(err, "failed to get or generate value")
 			}
 
 			generatedValues[columnName] = value
-			batch[i].Values[originIndexes[columnName]] = value
+			batch[i].Values[idx] = value
 		}
 	}
 
 	outputSync.WaitPrevious(ctx)
 
-	err = t.output.HandleRowsBatch(ctx, model.Name, batch)
+	err := t.output.HandleRowsBatch(ctx, model.Name, batch)
 	if err != nil {
 		return errors.WithMessage(err, "failed to save batch to output")
 	}

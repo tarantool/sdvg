@@ -49,7 +49,7 @@ func (g *DateTimeGenerator) Value(number float64, _ map[string]any) (any, error)
 	return value, nil
 }
 
-func (g *DateTimeGenerator) ValuesCount() float64 {
+func (g *DateTimeGenerator) ValuesCount(_ map[string]uint64) float64 {
 	fromSec := g.From.Unix()
 	toSec := g.To.Unix()
 

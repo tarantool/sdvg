@@ -697,3 +697,50 @@ func TestWalkWithFilter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
 	}
 }
+
+func TestExtractValuesFromTemplate(t *testing.T) {
+	type testCase struct {
+		name     string
+		template string
+		expected []string
+	}
+
+	testCases := []testCase{
+		{
+			name:     "Empty template",
+			template: "",
+			expected: []string{},
+		},
+		{
+			name:     "Valid template",
+			template: "{{ foo }}.{{boo}}",
+			expected: []string{"foo", "boo"},
+		},
+		{
+			name:     "Template with filters",
+			template: "{{ foo | upper | lower }}",
+			expected: []string{"foo"},
+		},
+		{
+			name:     "Template with functions",
+			template: "{{ upper('foo') | lower }}@{{ boo }}",
+			expected: []string{"boo"},
+		},
+		{
+			name:     "Invalid template",
+			template: "{_{ foo }}",
+			expected: []string{},
+		},
+	}
+
+	testFunc := func(t *testing.T, tc testCase) {
+		t.Helper()
+
+		actual := ExtractValuesFromTemplate(tc.template)
+		require.Equal(t, tc.expected, actual)
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
+	}
+}

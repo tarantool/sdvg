@@ -2,15 +2,15 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/otaviokr/topological-sort/toposort"
+	"github.com/tarantool/sdvg/internal/generator/common"
 	"io"
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"strings"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/otaviokr/topological-sort/toposort"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -122,45 +122,24 @@ func parseErrsToString(errs []error) string {
 	return sb.String()
 }
 
-func TopologicalSort(columns []*Column) ([]string, error) {
+func topologicalSort(columns []*Column) ([]string, error) {
 	graph := make(map[string][]string)
 	for _, c := range columns {
 		graph[c.Name] = make([]string, 0)
 
-		if c.Type != "string" {
-			continue
-		}
-
 		for _, r := range c.Ranges {
-			if r.StringParams.Template == "" {
+			if r.StringParams == nil || r.StringParams.Template == "" {
 				continue
 			}
 
-			graph[c.Name] = extractValuesFromTemplate(r.StringParams.Template)
+			graph[c.Name] = common.ExtractValuesFromTemplate(r.StringParams.Template)
 		}
 	}
 
 	sortedVertexes, err := toposort.ReverseTarjan(graph)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error())
 	}
 
 	return sortedVertexes, nil
-}
-
-func extractValuesFromTemplate(template string) []string {
-	re := regexp.MustCompile(`{{\s*([^}]+)\s*}}`)
-	matches := re.FindAllStringSubmatch(template, -1)
-
-	var values []string
-	for _, match := range matches {
-		expr := match[1]
-
-		parts := regexp.MustCompile(`\s*\|\s*|\s+`).Split(expr, -1)
-		if len(parts) > 0 && parts[0] != "" && !strings.Contains(parts[0], "(") {
-			values = append(values, parts[0])
-		}
-	}
-
-	return values
 }
