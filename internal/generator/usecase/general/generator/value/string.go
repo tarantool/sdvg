@@ -1,17 +1,23 @@
 package value
 
 import (
-	"github.com/flosch/pongo2"
 	"math"
 	"math/big"
+	"regexp"
 	"slices"
 	"strings"
 
+	"github.com/flosch/pongo2"
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/en"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/ru"
+)
+
+var (
+	rePatternVal = regexp.MustCompile(`pattern\((?:'([^']*)'|"([^"]*)")\)`)
 )
 
 // Verify interface compliance in compile time.
@@ -34,7 +40,7 @@ func (g *StringGenerator) Prepare() error {
 	if g.Template != "" {
 		template, err := pongo2.FromString(g.Template)
 		if err != nil {
-			return err
+			return errors.Errorf("failed to parse template: %s", err.Error())
 		}
 
 		g.template = template
@@ -183,13 +189,13 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 
 // templateString returns n-th string by template.
 func (g *StringGenerator) templateString(number float64, generatedValues map[string]any) (string, error) {
-	generatedValues["pattern"] = func(pattern string) string {
-		return g.patternString(number, pattern)
+	generatedValues["pattern"] = func(pattern string) *pongo2.Value {
+		return pongo2.AsSafeValue(g.patternString(number, pattern))
 	}
 
 	val, err := g.template.Execute(generatedValues)
 	if err != nil {
-		return "", err
+		return "", errors.New(err.Error())
 	}
 
 	return val, nil
@@ -437,7 +443,12 @@ func (g *StringGenerator) simpleString(number float64) string {
 // Value returns n-th string from range.
 func (g *StringGenerator) Value(number float64, row map[string]any) (any, error) {
 	if g.Template != "" {
-		return g.templateString(number, row)
+		val, err := g.templateString(number, row)
+		if err != nil {
+			return nil, errors.WithMessage(err, "failed to template string")
+		}
+
+		return val, nil
 	}
 
 	switch g.LogicalType {
@@ -455,15 +466,9 @@ func (g *StringGenerator) Value(number float64, row map[string]any) (any, error)
 }
 
 //nolint:cyclop
-func (g *StringGenerator) ValuesCount() float64 {
+func (g *StringGenerator) ValuesCount(distinctValuesCountByColumn map[string]uint64) float64 {
 	if g.Template != "" {
-		totalCount := float64(0)
-		totalCount += math.Pow(float64(len(g.localeModule.LargeLetters())), float64(strings.Count(g.Template, "A")))
-		totalCount += math.Pow(float64(len(g.localeModule.SmallLetters())), float64(strings.Count(g.Template, "a")))
-		totalCount += math.Pow(float64(len(locale.Numbers)), float64(strings.Count(g.Template, "0")))
-		totalCount += math.Pow(float64(len(locale.SpecialChars)), float64(strings.Count(g.Template, "#")))
-
-		return totalCount
+		return g.templateCardinality(distinctValuesCountByColumn)
 	}
 
 	switch g.LogicalType {
@@ -500,4 +505,49 @@ func (g *StringGenerator) ValuesCount() float64 {
 	}
 
 	return totalCount
+}
+
+func (g *StringGenerator) templateCardinality(distinctValuesCountByColumn map[string]uint64) float64 {
+	total := 1.0
+
+	patternValMatches := rePatternVal.FindAllStringSubmatch(g.Template, -1)
+	for _, match := range patternValMatches {
+		pattern := match[1]
+		if pattern == "" {
+			pattern = match[2]
+		}
+
+		total *= g.patternCardinality(pattern)
+	}
+
+	columns := common.ExtractValuesFromTemplate(g.Template)
+	for _, column := range columns {
+		if count, ok := distinctValuesCountByColumn[column]; ok && count > 0 {
+			total *= float64(count)
+		}
+	}
+
+	return total
+}
+
+func (g *StringGenerator) patternCardinality(pattern string) float64 {
+	total := 1.0
+
+	if count := strings.Count(pattern, "A"); count > 0 {
+		total *= math.Pow(float64(len(g.localeModule.LargeLetters())), float64(count))
+	}
+
+	if count := strings.Count(pattern, "a"); count > 0 {
+		total *= math.Pow(float64(len(g.localeModule.SmallLetters())), float64(count))
+	}
+
+	if count := strings.Count(pattern, "0"); count > 0 {
+		total *= math.Pow(float64(len(locale.Numbers)), float64(count))
+	}
+
+	if count := strings.Count(pattern, "#"); count > 0 {
+		total *= math.Pow(float64(len(locale.SpecialChars)), float64(count))
+	}
+
+	return total
 }

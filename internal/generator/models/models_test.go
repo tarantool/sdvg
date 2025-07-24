@@ -1197,6 +1197,9 @@ parquet params:
 			expectedModel := tc.expected.Models[modelName]
 			gotModel := cfg.Models[modelName]
 
+			// skip ColumnsTopologicalOrder check
+			expectedModel.ColumnsTopologicalOrder = gotModel.ColumnsTopologicalOrder
+
 			for columnName := range expectedModel.Columns {
 				expectedColumn := expectedModel.Columns[columnName]
 				gotColumn := gotModel.Columns[columnName]

@@ -310,7 +310,11 @@ func TestInteger(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "integer", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "integers",
+			Type:   "integer",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -357,7 +361,11 @@ func TestInteger(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "integer", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "integers",
+			Type:   "integer",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
 	}
@@ -382,7 +390,11 @@ func TestFloat(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "float", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "floats",
+			Type:   "float",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -413,7 +425,11 @@ func TestFloat(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "float", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "floats",
+			Type:   "float",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
 	}
@@ -449,7 +465,11 @@ func TestString(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		column := &models.Column{Name: "test", Type: "string", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "strings",
+			Type:   "string",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		handled := checkType(t, column, "")
 		strValue, ok := handled[0].Values[0].(string)
@@ -466,7 +486,7 @@ func TestString(t *testing.T) {
 }
 
 func TestUUID(t *testing.T) {
-	column := &models.Column{Type: "uuid"}
+	column := &models.Column{Name: "uuids", Type: "uuid"}
 	checkType(t, column, uuid.UUID{})
 	checkDistinct(t, column)
 	checkForeignKeyCases(t, column)
@@ -486,7 +506,11 @@ func TestDateTime(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "datetime", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "datetimes",
+			Type:   "datetime",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -503,7 +527,11 @@ func TestDateTime(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "datetime", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "datetimes",
+			Type:   "datetime",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
 	}
@@ -736,7 +764,11 @@ func TestEnum(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			column := &models.Column{Type: tc.dataType, Ranges: []*models.Params{{Values: tc.values}}}
+			column := &models.Column{
+				Name:   "enums",
+				Type:   tc.dataType,
+				Ranges: []*models.Params{{Values: tc.values}},
+			}
 
 			cfg := oneColumnCfg(t, column)
 			cfg.Models[UnitDefaultColumnName].RowsCount = tc.rowsCount
@@ -745,7 +777,11 @@ func TestEnum(t *testing.T) {
 			handledDataRows := generateFunc(t, cfg)[UnitDefaultColumnName]
 			require.Len(t, handledDataRows, len(tc.expected))
 
-			columnOrdered := &models.Column{Type: tc.dataType, Ranges: []*models.Params{{Values: tc.values, Ordered: true}}}
+			columnOrdered := &models.Column{
+				Name:   "enums",
+				Type:   tc.dataType,
+				Ranges: []*models.Params{{Values: tc.values, Ordered: true}},
+			}
 
 			cfg = oneColumnCfg(t, columnOrdered)
 			cfg.Models[UnitDefaultColumnName].RowsCount = tc.rowsCount
@@ -914,7 +950,7 @@ func TestRanges(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			column := &models.Column{Type: tc.dataType, Ranges: tc.ranges}
+			column := &models.Column{Name: "ranges", Type: tc.dataType, Ranges: tc.ranges}
 
 			cfg := oneColumnCfg(t, column)
 			cfg.Models[UnitDefaultColumnName].RowsCount = UnitDefaultRowsCount

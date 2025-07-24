@@ -11,12 +11,13 @@ import (
 )
 
 type rangeGenerator struct {
-	numFrom          uint64
-	numTo            uint64
-	sequencer        sequencer
-	dataRandomFactor float64
-	generator        value.Generator
-	nullPercentage   float64
+	numFrom             uint64
+	numTo               uint64
+	distinctValuesCount uint64
+	sequencer           sequencer
+	dataRandomFactor    float64
+	generator           value.Generator
+	nullPercentage      float64
 }
 
 type ColumnGenerator struct {
@@ -28,7 +29,7 @@ type ColumnGenerator struct {
 }
 
 func NewColumnGenerator(
-	baseSeed uint64,
+	baseSeed uint64, distinctValuesCountByColumn map[string]uint64,
 	modelName string, model *models.Model, column *models.Column,
 	dataModelName string, dataModel *models.Model, dataColumn *models.Column,
 ) (*ColumnGenerator, error) {
@@ -54,7 +55,7 @@ func NewColumnGenerator(
 		rangeRowsCount := uint64(math.Ceil(float64(rowsCount) * dataRange.RangePercentage))
 
 		gen, err := newRangeGenerator(
-			column, columnSeed,
+			column, columnSeed, distinctValuesCountByColumn,
 			dataModel, dataColumn, dataColumnSeed,
 			dataRange, rangeRowsOffset, rangeRowsCount,
 		)
@@ -67,7 +68,6 @@ func NewColumnGenerator(
 		}
 
 		rangeGenerators = append(rangeGenerators, gen)
-
 		rangeRowsOffset += rangeRowsCount
 	}
 
@@ -94,7 +94,7 @@ func (cg *ColumnGenerator) SkipRows(count uint64) {
 
 //nolint:cyclop
 func newRangeGenerator(
-	column *models.Column, columnSeed uint64,
+	column *models.Column, columnSeed uint64, distinctValuesCountByColumn map[string]uint64,
 	dataModel *models.Model, dataColumn *models.Column, dataColumnSeed uint64,
 	dataRange *models.Params, rangeRowsOffset, rangeRowsCount uint64,
 ) (*rangeGenerator, error) {
@@ -140,7 +140,7 @@ func newRangeGenerator(
 		distinctValuesCount = dataRange.DistinctCount
 	}
 
-	generatorValuesCount := valueGenerator.ValuesCount()
+	generatorValuesCount := valueGenerator.ValuesCount(distinctValuesCountByColumn)
 
 	if float64(distinctValuesCount) > generatorValuesCount {
 		if dataRange.DistinctPercentage != 0 || dataRange.DistinctCount != 0 {
@@ -149,6 +149,8 @@ func newRangeGenerator(
 
 		distinctValuesCount = uint64(generatorValuesCount)
 	}
+
+	distinctValuesCountByColumn[column.Name] += distinctValuesCount
 
 	rangeOrdered := dataRange.Ordered
 	orderSeed := dataColumnSeed
@@ -173,12 +175,13 @@ func newRangeGenerator(
 	dataRandomFactor := 1 - float64(distinctValuesCount)/generatorValuesCount
 
 	return &rangeGenerator{
-		numFrom:          rangeRowsOffset,
-		numTo:            rangeRowsOffset + rangeRowsCount,
-		dataRandomFactor: dataRandomFactor,
-		generator:        valueGenerator,
-		sequencer:        rangeSequencer,
-		nullPercentage:   dataRange.NullPercentage,
+		numFrom:             rangeRowsOffset,
+		numTo:               rangeRowsOffset + rangeRowsCount,
+		distinctValuesCount: distinctValuesCount,
+		dataRandomFactor:    dataRandomFactor,
+		generator:           valueGenerator,
+		sequencer:           rangeSequencer,
+		nullPercentage:      dataRange.NullPercentage,
 	}, nil
 }
 
