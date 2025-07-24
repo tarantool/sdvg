@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -356,4 +357,24 @@ func CtxClosed(ctx context.Context) bool {
 	default:
 		return false
 	}
+}
+
+func ExtractValuesFromTemplate(template string) []string {
+	re := regexp.MustCompile(`{{\s*([^\s|(){}]+)[^}]*}}`)
+	matches := re.FindAllStringSubmatch(template, -1)
+
+	values := make([]string, 0, len(matches))
+
+	for _, match := range matches {
+		expr := match[0]
+		val := match[1]
+
+		if strings.Contains(expr, "(") && strings.Contains(expr, ")") {
+			continue
+		}
+
+		values = append(values, val)
+	}
+
+	return values
 }

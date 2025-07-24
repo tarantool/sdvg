@@ -1,56 +1,10 @@
 package models
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
-
-func TestExtractValuesFromTemplate(t *testing.T) {
-	type testCase struct {
-		name     string
-		template string
-		expected []string
-	}
-
-	testCases := []testCase{
-		{
-			name:     "Empty template",
-			template: "",
-			expected: nil,
-		},
-		{
-			name:     "Valid template",
-			template: "{{ foo }}.{{boo}}",
-			expected: []string{"foo", "boo"},
-		},
-		{
-			name:     "Template with filters",
-			template: "{{ foo | upper | lower }}",
-			expected: []string{"foo"},
-		},
-		{
-			name:     "Template with functions",
-			template: "{{ upper('foo') | lower }}@{{ boo }}",
-			expected: []string{"boo"},
-		},
-		{
-			name:     "Invalid template",
-			template: "{_{ foo }}",
-			expected: nil,
-		},
-	}
-
-	testFunc := func(t *testing.T, tc testCase) {
-		t.Helper()
-
-		actual := extractValuesFromTemplate(tc.template)
-		require.Equal(t, tc.expected, actual)
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
-	}
-}
 
 func TestTopologicalSort(t *testing.T) {
 	type testCase struct {
@@ -152,7 +106,7 @@ func TestTopologicalSort(t *testing.T) {
 	testFunc := func(t *testing.T, tc testCase) {
 		t.Helper()
 
-		actual, err := TopologicalSort(tc.columns)
+		actual, err := topologicalSort(tc.columns)
 		require.Equal(t, tc.wantErr, err != nil)
 		require.Equal(t, tc.expected, actual)
 	}
