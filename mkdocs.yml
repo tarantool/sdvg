@@ -1,0 +1,109 @@
+site_name: "SDVG"
+repo_url: "https://github.com/tarantool/sdvg"
+repo_name: "tarantool/sdvg"
+
+### BUILD ###
+
+docs_dir: "doc"
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - index.md
+  - usage.md
+  - contributing.md
+  - overview.md
+  - About:
+    - changelog.md
+    - license.md
+
+extra_css:
+  - common/extra.css
+
+### APPEARANCE ###
+
+theme:
+  name: "material"
+  language: "en"
+
+  logo: "assets/logo.png"
+  favicon: "assets/logo.png"
+  icon:
+    repo: "fontawesome/brands/github"
+
+  palette:
+
+    # automatic theme mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Change theme mode
+
+    # dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch theme
+
+    # light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch theme
+
+  features:
+    - content.code.copy # copy button
+
+    - navigation.footer
+    - navigation.path
+    - navigation.indexes
+    - navigation.sections
+    - navigation.expand
+    - navigation.tabs
+    - navigation.tabs.sticky
+
+    - toc.follow
+    - toc.integrate
+
+    - search.highlight
+
+extra:
+  generator: false # disable note 'Made with Material for MkDocs'
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+  - attr_list:
+
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify # for cyrillic
+        kwds:
+          case: lower
+
+plugins:
+  - include-markdown:
+  - mkdocs-simple-hooks:
+      hooks:
+        on_page_markdown: "doc.common.hooks:replace_specific_links"
+  - search:
+  - i18n:
+      docs_structure: "folder"
+      fallback_to_default: true
+      reconfigure_search: true
+      reconfigure_material: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: ru
+          name: Russian
+          build: true

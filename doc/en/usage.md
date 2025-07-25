@@ -1,5 +1,7 @@
 # User Guide
 
+<div class="hide-in-mkdocs">
+
 ## Table of Contents
 
 - [Configuration](#configuration)
@@ -13,6 +15,8 @@
   - [Data generation](#data-generation)
   - [Ignoring conflicts](#ignoring-conflicts)
   - [Continuing generation](#continuing-generation)
+
+</div>
 
 ## Configuration
 

@@ -1,0 +1,7 @@
+.hide-in-mkdocs {
+    display: none;
+}
+
+.md-header__title {
+    margin-left: 0 !important;
+}

@@ -1,4 +1,8 @@
+<div class="hide-in-mkdocs">
+
 # Synthetic Data Values Generator (SDVG)
+
+</div>
 
 [![Release][release-badge]][release-url]
 [![Pre-release][pre-release-badge]][pre-release-url]
@@ -20,17 +24,21 @@
 [license-badge]: https://img.shields.io/github/license/tarantool/sdvg
 [license-url]: ./LICENSE
 
-![scheme.png](asset/scheme.png)
+<div class="hide-in-mkdocs">
 
 ## Язык
 
 - [English](README.md)
 - **Русский**
 
+</div>
+
 ## Описание продукта
 
 SDVG (Synthetic Data Values Generator) — это инструмент для генерации синтетических данных.
 Он поддерживает различные форматы запуска, типы данных для генерации и форматы вывода.
+
+![scheme.png](doc/assets/scheme.png)
 
 Форматы запуска:
 
