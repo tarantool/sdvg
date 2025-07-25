@@ -24,7 +24,7 @@ SDVG использует два конфигурационных файла: ф
 
 Конфигурация экземпляра SDVG содержит следующие поля:
 
-- `log_foramt`: Формат логов.
+- `log_format`: Формат логов.
   Поддерживаемые значения: `text`, `json`. По умолчанию `text`.
 - `http`: Конфигурация HTTP сервера, описывается структурой `HTTPConfig`.
 - `open_ai`: Конфигурация OpenAI, описывается структурой `OpenAI`.
@@ -358,7 +358,6 @@ output:
     float_precision: 1
     datetime_format: millis
     compression_codec: UNCOMPRESSED
-    write_workers_per_file: 4
 models:
   token:
     rows_count: 500000

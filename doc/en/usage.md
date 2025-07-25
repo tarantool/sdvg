@@ -3,28 +3,28 @@
 ## Table of Contents
 
 - [Configuration](#configuration)
-    - [SDVG Instance Configuration](#sdvg-instance-configuration)
-        - [Description of SDVG Instance Configuration Fields](#description-of-sdvg-instance-configuration-fields)
-        - [Examples of SDVG Instance Configuration](#examples-of-sdvg-instance-configuration)
-    - [Data Generation Configuration](#data-generation-configuration)
-        - [Description of Data Generation Configuration Fields](#description-of-data-generation-configuration-fields)
-        - [Examples of Data Generation Configuration](#examples-of-data-generation-configuration)
+  - [SDVG instance configuration](#sdvg-instance-configuration)
+    - [Description of SDVG instance configuration fields](#description-of-sdvg-instance-configuration-fields)
+    - [Examples of SDVG instance configuration](#examples-of-sdvg-instance-configuration)
+  - [Data generation configuration](#data-generation-configuration)
+    - [Description of data generation configuration fields](#description-of-data-generation-configuration-fields)
+    - [Examples of data generation configuration](#examples-of-data-generation-configuration)
 - [Launch](#launch)
-    - [Data Generation](#data-generation)
-    - [Ignoring Conflicts](#ignoring-conflicts)
-    - [Continuing Generation](#continuing-generation)
+  - [Data generation](#data-generation)
+  - [Ignoring conflicts](#ignoring-conflicts)
+  - [Continuing generation](#continuing-generation)
 
 ## Configuration
 
 SDVG uses two configuration files: the SDVG instance configuration file and the data generation configuration file.
 
-### SDVG Instance Configuration
+### SDVG instance configuration
 
-#### Description of SDVG Instance Configuration Fields
+#### Description of SDVG instance configuration fields
 
 The SDVG instance configuration includes the following fields:
 
-- `log_foramt`: Log format.
+- `log_format`: Log format.
   Supported values: `text`, `json`. Default is `text`.
 - `http`: HTTP server configuration described by the `HTTPConfig` structure.
 - `open_ai`: OpenAI configuration described by the `OpenAI` structure.
@@ -43,7 +43,7 @@ The `open_ai` structure describes the OpenAI configuration and includes the foll
 - `base_url`: Base URL for the OpenAI API.
 - `model`: OpenAI model.
 
-#### Examples of SDVG Instance Configuration
+#### Examples of SDVG instance configuration
 
 Example configuration for HTTP server:
 
@@ -64,15 +64,15 @@ open_ai:
   model: "deepseek-r1:70b-llama-distill-q8_0"
 ```
 
-### Data Generation Configuration
+### Data generation configuration
 
 This configuration is directly used for data generation after launching SDVG.
 
-#### Description of Data Generation Configuration Fields
+#### Description of data generation configuration fields
 
 The data generation configuration includes the following fields:
 
-- `random_seed`: Seed for random number generation. If omitted or set to zero, a random value is used.
+- `random_seed`: Seed for random number generation. If omitted or set to `0`, a random value is used.
 - `workers_count`: Number of threads for data generation. Defaults to CPU count multiplied by 4.
 - `batch_size`: Batch size for data generation and output. Default is `1000`.
 - `models`: Map of data models, with the key as the model name and the value as `models[*]` structure.
@@ -93,7 +93,7 @@ The `models[*]` structure describes a data generation model and includes:
 - `rows_count`: Number of rows to generate. Required field.
 - `rows_per_file`: Number of rows per file, supported by `csv` and `parquet`. Defaults is `rows_count`.
 - `generate_from`: Starting row number for generation. Default is `0`.
-- `generate_to`: The number of the line to generate up to. Default is `rows_count`.
+- `generate_to`: Ending row number for generation. Default is `rows_count`.
 - `model_dir`: Directory to store data for this model, relative to `output_dir`. Defaults to model name.
 - `columns`: List of columns described by the `models[*].columns` structure.
 - `partition_columns`: Columns used for data partitioning. Supported only for `parquet`.
@@ -129,8 +129,8 @@ The `models[*].columns` structure describes a column in a data model:
   Useful for maintaining value correspondence with external tables.
 
 > **Attention**: The `ranges` parameter and direct specification of parameters at the column level
-> (`values`, `type_params`, `distinct_percentage`, `distinct_count`, `null_percentage`, `ordered`) are mutually exclusive.
-> They cannot be used simultaneously.
+> (`values`, `type_params`, `distinct_percentage`, `distinct_count`, `null_percentage`, `ordered`)
+> are mutually exclusive. They cannot be used simultaneously.
 
 Structure `models[*].columns[*].parquet_params`:
 
@@ -202,24 +202,24 @@ Structure `output.params` for format `http`:
 
   Example value for the `format_template` field:
 
-```yaml
-format_template: |
-  {
-    "table_name": "{{ .ModelName }}",
-    "meta": {
-      "rows_count": {{ len .Rows }}
-    },
-    "rows": [
-      {{- range $i, $row := .Rows }}
-        {{- if $i}},{{ end }}
-        {
-          "id": {{ index $row "id" }},
-          "username": "{{ index $row "name" }}"
-        }
-      {{- end }}
-    ]
-  }
-```
+  ```yaml
+  format_template: |
+    {
+      "table_name": "{{ .ModelName }}",
+      "meta": {
+        "rows_count": {{ len .Rows }}
+      },
+      "rows": [
+        {{- range $i, $row := .Rows }}
+          {{- if $i}},{{ end }}
+          {
+            "id": {{ index $row "id" }},
+            "username": "{{ index $row "name" }}"
+          }
+        {{- end }}
+      ]
+    }
+  ```
 
 Default value for the `format_template` field:
 
@@ -236,7 +236,7 @@ Structure of `output.params` for `tcs` format:
 Similar to the structure for the `http` format,
 except that the `format_template` field is immutable and always set to its default value.
 
-#### Examples of Data Generation Configuration
+#### Examples of data generation configuration
 
 Example data model configuration:
 
@@ -352,7 +352,6 @@ output:
     float_precision: 1
     datetime_format: millis
     compression_codec: UNCOMPRESSED
-    write_workers_per_file: 4
 models:
   token:
     rows_count: 500000
@@ -430,7 +429,7 @@ sdvg --help
 sdvg generate -h
 ```
 
-### Data Generation
+### Data generation
 
 Before starting data generation, SDVG checks the output directory for conflicting files.
 If conflicts are found, they will be displayed as a list of errors upon startup.
@@ -442,7 +441,7 @@ To start data generation with a specified configuration file:
 sdvg generate ./models.yml
 ```
 
-### Ignoring Conflicts
+### Ignoring conflicts
 
 If you want to automatically remove conflicting files from the output directory
 and continue generation without additional prompts, use the `-F` or `--force` flag:
@@ -451,7 +450,7 @@ and continue generation without additional prompts, use the `-F` or `--force` fl
 sdvg generate --force ./models.yml
 ```
 
-### Continuing Generation
+### Continuing generation
 
 To continue generation from the last recorded row:
 
