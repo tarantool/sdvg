@@ -221,7 +221,7 @@ Structure `output.params` for format `http`:
     }
   ```
 
-Default value for the `format_template` field:
+  Default value for the `format_template` field:
 
 ```yaml
 format_template: |
