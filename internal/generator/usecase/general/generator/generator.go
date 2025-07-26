@@ -11,13 +11,12 @@ import (
 )
 
 type rangeGenerator struct {
-	numFrom             uint64
-	numTo               uint64
-	distinctValuesCount uint64
-	sequencer           sequencer
-	dataRandomFactor    float64
-	generator           value.Generator
-	nullPercentage      float64
+	numFrom          uint64
+	numTo            uint64
+	sequencer        sequencer
+	dataRandomFactor float64
+	generator        value.Generator
+	nullPercentage   float64
 }
 
 type ColumnGenerator struct {
@@ -175,13 +174,12 @@ func newRangeGenerator(
 	dataRandomFactor := 1 - float64(distinctValuesCount)/generatorValuesCount
 
 	return &rangeGenerator{
-		numFrom:             rangeRowsOffset,
-		numTo:               rangeRowsOffset + rangeRowsCount,
-		distinctValuesCount: distinctValuesCount,
-		dataRandomFactor:    dataRandomFactor,
-		generator:           valueGenerator,
-		sequencer:           rangeSequencer,
-		nullPercentage:      dataRange.NullPercentage,
+		numFrom:          rangeRowsOffset,
+		numTo:            rangeRowsOffset + rangeRowsCount,
+		dataRandomFactor: dataRandomFactor,
+		generator:        valueGenerator,
+		sequencer:        rangeSequencer,
+		nullPercentage:   dataRange.NullPercentage,
 	}, nil
 }
 
