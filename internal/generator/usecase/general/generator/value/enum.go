@@ -31,12 +31,12 @@ func (g *EnumGenerator) SetTotalCount(totalValuesCount uint64) error {
 	return nil
 }
 
-func (g *EnumGenerator) Value(number float64) (any, error) {
+func (g *EnumGenerator) Value(number float64, _ map[string]any) (any, error) {
 	idx := int(math.Floor(number)) / g.rowsPerValue
 
 	return g.Values[idx], nil
 }
 
-func (g *EnumGenerator) ValuesCount() float64 {
+func (g *EnumGenerator) ValuesCount(_ map[string]uint64) float64 {
 	return float64(len(g.Values))
 }

@@ -16,6 +16,7 @@ import (
 	outputMock "github.com/tarantool/sdvg/internal/generator/output/mock"
 	"github.com/tarantool/sdvg/internal/generator/usecase"
 	usecaseGeneral "github.com/tarantool/sdvg/internal/generator/usecase/general"
+	"github.com/tarantool/sdvg/internal/generator/usecase/general/generator/value"
 )
 
 const (
@@ -69,12 +70,12 @@ func deepColumnCopy(c *models.Column) *models.Column {
 func toString(t *testing.T, anyValue any) string {
 	t.Helper()
 
-	value, err := json.Marshal(anyValue)
+	val, err := json.Marshal(anyValue)
 	if err != nil {
-		t.Fatalf("Failed to json marshal of %v: %s", value, err)
+		t.Fatalf("Failed to json marshal of %v: %s", val, err)
 	}
 
-	return string(value)
+	return string(val)
 }
 
 func getCfg(t *testing.T, model map[string]*models.Model) models.GenerationConfig {
@@ -192,11 +193,57 @@ func checkDistinct(t *testing.T, column *models.Column) {
 
 	for i := range UnitDefaultRowsCount {
 		require.Len(t, handled[i].Values, 1, "column: %+v\n handled: %+v", column, handled)
-		value := toString(t, handled[i].Values[0])
-		_, alreadyHas := uniqueMap[value]
-		require.False(t, alreadyHas, "value: %+v\nmap: %+v", value, uniqueMap)
-		uniqueMap[value] = true
+		val := toString(t, handled[i].Values[0])
+		_, alreadyHas := uniqueMap[val]
+		require.False(t, alreadyHas, "value: %+v\nmap: %+v", val, uniqueMap)
+		uniqueMap[val] = true
 	}
+}
+
+func checkValuesCount(
+	t *testing.T,
+	gen value.Generator,
+	valuesCountByColumn map[string]uint64, expectedValueCount float64,
+) {
+	t.Helper()
+
+	require.NoError(t, gen.Prepare())
+
+	valuesCount := gen.ValuesCount(valuesCountByColumn)
+	require.Equal(t, uint64(expectedValueCount), uint64(valuesCount))
+}
+
+func checkPossibleToGenerate(t *testing.T, columns []*models.Column, rowsCount uint64, wantErr bool) {
+	t.Helper()
+
+	copyColumns := make([]*models.Column, 0, len(columns))
+	for _, column := range columns {
+		copyColumns = append(copyColumns, deepColumnCopy(column))
+	}
+
+	cfg := getCfg(t, map[string]*models.Model{
+		"test": {
+			RowsCount: rowsCount,
+			Columns:   copyColumns,
+		},
+	})
+
+	outputHandler := func(_ context.Context, _ string, _ []*models.DataRow) error { return nil }
+
+	out := outputMock.NewOutput(outputHandler)
+	uc := usecaseGeneral.NewUseCase(usecaseGeneral.UseCaseConfig{})
+
+	taskID, err := uc.CreateTask(
+		context.Background(),
+		usecase.TaskConfig{
+			GenerationConfig: &cfg,
+			Output:           out,
+		},
+	)
+
+	require.Equal(t, wantErr, err != nil)
+	err = uc.WaitResult(taskID)
+	require.Equal(t, wantErr, err != nil)
 }
 
 func checkForeignKey(t *testing.T, column *models.Column, nullPercentage float64, foreignOrdered bool) {
@@ -214,6 +261,7 @@ func checkForeignKey(t *testing.T, column *models.Column, nullPercentage float64
 		"foreign": {
 			RowsCount: UnitDefaultRowsCount * 2,
 			Columns: []*models.Column{{
+				Name:       "foreign_key",
 				ForeignKey: "orig.test",
 				Params:     &models.Params{Ordered: foreignOrdered},
 			}},
@@ -237,10 +285,10 @@ func checkForeignKey(t *testing.T, column *models.Column, nullPercentage float64
 			continue
 		}
 
-		value := toString(t, origHandled[i].Values[0])
-		_, alreadyHas := origMap[value]
-		require.False(t, alreadyHas, "value: %+v\nmap: %+v", value, origMap)
-		origMap[value] = true
+		val := toString(t, origHandled[i].Values[0])
+		_, alreadyHas := origMap[val]
+		require.False(t, alreadyHas, "value: %+v\nmap: %+v", val, origMap)
+		origMap[val] = true
 	}
 
 	for i := range UnitDefaultRowsCount * 2 {
@@ -266,9 +314,9 @@ func checkForeignKey(t *testing.T, column *models.Column, nullPercentage float64
 			}
 		}
 
-		value := toString(t, foreignHandled[i].Values[0])
-		_, alreadyHas := origMap[value]
-		require.True(t, alreadyHas, "value: %+v (#%d)\nmap: %+v", value, i, origMap)
+		val := toString(t, foreignHandled[i].Values[0])
+		_, alreadyHas := origMap[val]
+		require.True(t, alreadyHas, "value: %+v (#%d)\nmap: %+v", val, i, origMap)
 	}
 }
 
@@ -310,7 +358,11 @@ func TestInteger(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "integer", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "integers",
+			Type:   "integer",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -357,9 +409,28 @@ func TestInteger(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "integer", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "integers",
+			Type:   "integer",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
+	}
+
+	checkValuesCountCases := []struct {
+		typeParams *models.ColumnIntegerParams
+		expected   float64
+	}{
+		{&models.ColumnIntegerParams{From: 1, To: 5}, 5},
+		{&models.ColumnIntegerParams{From: 100, To: 1000}, 901},
+		{&models.ColumnIntegerParams{From: 1, To: 1}, 1},
+		{&models.ColumnIntegerParams{From: 123, To: 654}, 532},
+	}
+
+	for _, testCase := range checkValuesCountCases {
+		generator := &value.IntegerGenerator{ColumnIntegerParams: testCase.typeParams}
+		checkValuesCount(t, generator, nil, testCase.expected)
 	}
 }
 
@@ -382,7 +453,11 @@ func TestFloat(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "float", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "floats",
+			Type:   "float",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -413,9 +488,28 @@ func TestFloat(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "float", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "floats",
+			Type:   "float",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
+	}
+
+	checkValuesCountCases := []struct {
+		typeParams *models.ColumnFloatParams
+		expected   float64
+	}{
+		{&models.ColumnFloatParams{From: 1.021, To: 5.554433}, math.Inf(1)},
+		{&models.ColumnFloatParams{From: 195.2345, To: 1000}, math.Inf(1)},
+		{&models.ColumnFloatParams{From: 0.12345, To: 1}, math.Inf(1)},
+		{&models.ColumnFloatParams{From: 123, To: 654}, math.Inf(1)},
+	}
+
+	for _, testCase := range checkValuesCountCases {
+		generator := &value.FloatGenerator{ColumnFloatParams: testCase.typeParams}
+		checkValuesCount(t, generator, nil, testCase.expected)
 	}
 }
 
@@ -437,9 +531,9 @@ func TestString(t *testing.T) {
 		{&models.ColumnStringParams{LogicalType: models.LastNameType, MinLength: 4, MaxLength: 7}, 4, 7},
 		{&models.ColumnStringParams{LogicalType: models.PhoneType, MinLength: 10, MaxLength: 10}, 10, 10},
 		{&models.ColumnStringParams{MinLength: 100, MaxLength: 100}, 100, 100},
-		{&models.ColumnStringParams{Template: "AAaa00##", Locale: "en"}, 8, 8},
-		{&models.ColumnStringParams{Template: "AAaa00##", Locale: "ru"}, 8, 8},
-		{&models.ColumnStringParams{Template: "0123456789012345678901234567890123456789"}, 40, 40},
+		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "en"}, 8, 8},
+		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "ru"}, 8, 8},
+		{&models.ColumnStringParams{Template: "{{ pattern('0123456789012345678901234567890123456789') }}"}, 40, 40},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 3, MaxLength: 5}, 3, 5},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512}, 510, 512},
@@ -449,7 +543,11 @@ func TestString(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		column := &models.Column{Type: "string", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "strings",
+			Type:   "string",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		handled := checkType(t, column, "")
 		strValue, ok := handled[0].Values[0].(string)
@@ -463,13 +561,197 @@ func TestString(t *testing.T) {
 		checkDistinct(t, column)
 		checkForeignKeyCases(t, column)
 	}
+
+	checkValuesCountCases := []struct {
+		typeParams                  *models.ColumnStringParams
+		distinctValuesCountByColumn map[string]uint64
+		expected                    float64
+	}{
+		{
+			&models.ColumnStringParams{
+				MinLength:           1,
+				MaxLength:           1,
+				Locale:              "en",
+				WithoutNumbers:      true,
+				WithoutSpecialChars: true,
+			},
+			nil,
+			52,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength:           1,
+				MaxLength:           1,
+				Locale:              "ru",
+				WithoutNumbers:      true,
+				WithoutSpecialChars: true,
+			},
+			nil,
+			66.0,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength:           3,
+				MaxLength:           7,
+				Locale:              "en",
+				WithoutNumbers:      true,
+				WithoutSpecialChars: true,
+			},
+			nil,
+			1048229968448,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength:           2,
+				MaxLength:           9,
+				Locale:              "ru",
+				WithoutNumbers:      true,
+				WithoutSpecialChars: true,
+			},
+			nil,
+			24128259706319868,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength:           10,
+				MaxLength:           24,
+				Locale:              "en",
+				WithoutLargeLetters: true,
+				WithoutSmallLetters: true,
+				WithoutSpecialChars: true,
+			},
+			nil,
+			1111111111111110000000000,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength:           1,
+				MaxLength:           8,
+				Locale:              "en",
+				WithoutLargeLetters: true,
+				WithoutSmallLetters: true,
+				WithoutNumbers:      true,
+			},
+			nil,
+			81870575520,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength: 10,
+				MaxLength: 15,
+				Locale:    "en",
+			},
+			nil,
+			88394150280794134360488281250,
+		},
+		{
+			&models.ColumnStringParams{
+				MinLength: 10,
+				MaxLength: 15,
+				Locale:    "ru",
+			},
+			nil,
+			868834460299970670989801640300,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:   "en",
+				Template: "{{ field }}",
+			},
+			map[string]uint64{
+				"field": 11,
+			},
+			11,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:   "en",
+				Template: "{{ pattern('A00') }}",
+			},
+			nil,
+			2600,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:   "ru",
+				Template: "{{ field }}{{ pattern('a0#') }}",
+			},
+			map[string]uint64{
+				"field": 10,
+			},
+			75900,
+		},
+	}
+
+	for _, testCase := range checkValuesCountCases {
+		generator := &value.StringGenerator{ColumnStringParams: testCase.typeParams}
+		checkValuesCount(t, generator, testCase.distinctValuesCountByColumn, testCase.expected)
+	}
+
+	idColumn := &models.Column{
+		Name: "id",
+		Type: "integer",
+		Ranges: []*models.Params{
+			{
+				TypeParams: &models.ColumnIntegerParams{
+					FromPtr: int64Ptr(1),
+					ToPtr:   int64Ptr(5),
+				},
+			},
+		},
+	}
+
+	emailColumn := &models.Column{
+		Name: "email",
+		Type: "string",
+		Ranges: []*models.Params{
+			{
+				TypeParams: &models.ColumnStringParams{
+					Template: "{{ id }}.{{ pattern('00') }}@example.com",
+				},
+				DistinctPercentage: 1,
+			},
+		},
+	}
+
+	checkPossibleToGenerateCases := []struct {
+		columns   []*models.Column
+		rowsCount uint64
+		wantErr   bool
+	}{
+		{
+			columns:   []*models.Column{idColumn, emailColumn},
+			rowsCount: 500,
+			wantErr:   false,
+		},
+		{
+			columns:   []*models.Column{emailColumn, idColumn},
+			rowsCount: 500,
+			wantErr:   false,
+		},
+		{
+			columns:   []*models.Column{idColumn, emailColumn},
+			rowsCount: 501,
+			wantErr:   true,
+		},
+		{
+			columns:   []*models.Column{emailColumn, idColumn},
+			rowsCount: 501,
+			wantErr:   true,
+		},
+	}
+
+	for _, testCase := range checkPossibleToGenerateCases {
+		checkPossibleToGenerate(t, testCase.columns, testCase.rowsCount, testCase.wantErr)
+	}
 }
 
 func TestUUID(t *testing.T) {
-	column := &models.Column{Type: "uuid"}
+	column := &models.Column{Name: "uuids", Type: "uuid"}
 	checkType(t, column, uuid.UUID{})
 	checkDistinct(t, column)
 	checkForeignKeyCases(t, column)
+	checkValuesCount(t, &value.UUIDGenerator{}, nil, float64(1<<(128-10)-1))
 }
 
 func TestDateTime(t *testing.T) {
@@ -486,7 +768,11 @@ func TestDateTime(t *testing.T) {
 	}
 
 	for _, testCase := range checkTypeCases {
-		column := &models.Column{Type: "datetime", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "datetimes",
+			Type:   "datetime",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkType(t, column, testCase.expected)
 		checkOrdered(t, column)
@@ -503,9 +789,52 @@ func TestDateTime(t *testing.T) {
 	}
 
 	for _, testCase := range checkValueCases {
-		column := &models.Column{Type: "datetime", Ranges: []*models.Params{{TypeParams: testCase.typeParams}}}
+		column := &models.Column{
+			Name:   "datetimes",
+			Type:   "datetime",
+			Ranges: []*models.Params{{TypeParams: testCase.typeParams}},
+		}
 
 		checkValue(t, column, testCase.expected)
+	}
+
+	checkValuesCountCases := []struct {
+		typeParams *models.ColumnDateTimeParams
+		expected   float64
+	}{
+		{
+			&models.ColumnDateTimeParams{
+				From: time.Date(2025, 7, 25, 10, 0, 0, 0, time.UTC),
+				To:   time.Date(2025, 7, 25, 10, 0, 0, 0, time.UTC),
+			},
+			1,
+		},
+		{
+			&models.ColumnDateTimeParams{
+				From: time.Date(2025, 7, 25, 10, 0, 0, 500_000_000, time.UTC),
+				To:   time.Date(2025, 7, 25, 10, 0, 5, 500_000_000, time.UTC),
+			},
+			6,
+		},
+		{
+			&models.ColumnDateTimeParams{
+				From: time.Date(2025, 7, 25, 10, 0, 0, 900_000_000, time.UTC),
+				To:   time.Date(2025, 7, 25, 10, 0, 1, 100_000_000, time.UTC),
+			},
+			400_000_002,
+		},
+		{
+			&models.ColumnDateTimeParams{
+				From: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+				To:   time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			},
+			31_536_001,
+		},
+	}
+
+	for _, testCase := range checkValuesCountCases {
+		generator := &value.DateTimeGenerator{ColumnDateTimeParams: testCase.typeParams}
+		checkValuesCount(t, generator, nil, testCase.expected)
 	}
 }
 
@@ -599,7 +928,7 @@ func TestIdempotence(t *testing.T) {
 						Name: "passport",
 						Type: "string",
 						Ranges: []*models.Params{{TypeParams: &models.ColumnStringParams{
-							Template: "AA 00 000 000",
+							Template: "{{ pattern('AA 00 000 000') }}",
 						},
 							NullPercentage: 0.5}},
 					},
@@ -736,7 +1065,11 @@ func TestEnum(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			column := &models.Column{Type: tc.dataType, Ranges: []*models.Params{{Values: tc.values}}}
+			column := &models.Column{
+				Name:   "enums",
+				Type:   tc.dataType,
+				Ranges: []*models.Params{{Values: tc.values}},
+			}
 
 			cfg := oneColumnCfg(t, column)
 			cfg.Models[UnitDefaultColumnName].RowsCount = tc.rowsCount
@@ -745,7 +1078,11 @@ func TestEnum(t *testing.T) {
 			handledDataRows := generateFunc(t, cfg)[UnitDefaultColumnName]
 			require.Len(t, handledDataRows, len(tc.expected))
 
-			columnOrdered := &models.Column{Type: tc.dataType, Ranges: []*models.Params{{Values: tc.values, Ordered: true}}}
+			columnOrdered := &models.Column{
+				Name:   "enums",
+				Type:   tc.dataType,
+				Ranges: []*models.Params{{Values: tc.values, Ordered: true}},
+			}
 
 			cfg = oneColumnCfg(t, columnOrdered)
 			cfg.Models[UnitDefaultColumnName].RowsCount = tc.rowsCount
@@ -755,8 +1092,8 @@ func TestEnum(t *testing.T) {
 			require.Len(t, handledDataRows, len(tc.expected))
 
 			for i := range handledDataRows {
-				value := handledDataRows[i].Values[0]
-				require.Equal(t, tc.expected[i], value)
+				val := handledDataRows[i].Values[0]
+				require.Equal(t, tc.expected[i], val)
 			}
 		})
 	}
@@ -914,7 +1251,7 @@ func TestRanges(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			column := &models.Column{Type: tc.dataType, Ranges: tc.ranges}
+			column := &models.Column{Name: "ranges", Type: tc.dataType, Ranges: tc.ranges}
 
 			cfg := oneColumnCfg(t, column)
 			cfg.Models[UnitDefaultColumnName].RowsCount = UnitDefaultRowsCount
@@ -929,9 +1266,9 @@ func TestRanges(t *testing.T) {
 			}
 
 			for i := range handledDataRows {
-				value := handledDataRows[i].Values[0]
+				val := handledDataRows[i].Values[0]
 
-				rangeIdx, err := mapValueToRange(tc.dataType, value, tc.ranges)
+				rangeIdx, err := mapValueToRange(tc.dataType, val, tc.ranges)
 				require.NoError(t, err)
 
 				expectedValuesAmountPerRange[rangeIdx]--
@@ -955,13 +1292,13 @@ func mapValueToRange(columnType string, value any, ranges []*models.Params) (int
 
 		switch columnType {
 		case "integer":
-			switch value := value.(type) {
+			switch val := value.(type) {
 			case int32:
-				if int32(r.IntegerParams.From) <= value && value <= int32(r.IntegerParams.To) {
+				if int32(r.IntegerParams.From) <= val && val <= int32(r.IntegerParams.To) {
 					return idx, nil
 				}
 			case int64:
-				if r.IntegerParams.From <= value && value <= r.IntegerParams.To {
+				if r.IntegerParams.From <= val && val <= r.IntegerParams.To {
 					return idx, nil
 				}
 			}
@@ -984,13 +1321,13 @@ func mapValueToRange(columnType string, value any, ranges []*models.Params) (int
 				return idx, nil
 			}
 		case "float":
-			switch value := value.(type) {
+			switch val := value.(type) {
 			case float32:
-				if float32(r.FloatParams.From) <= value && value <= float32(r.FloatParams.To) {
+				if float32(r.FloatParams.From) <= val && val <= float32(r.FloatParams.To) {
 					return idx, nil
 				}
 			case float64:
-				if r.FloatParams.From <= value && value <= r.FloatParams.To {
+				if r.FloatParams.From <= val && val <= r.FloatParams.To {
 					return idx, nil
 				}
 			}

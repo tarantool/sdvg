@@ -22,7 +22,7 @@ func (g *IntegerGenerator) SetTotalCount(totalValuesCount uint64) error {
 }
 
 // Value returns n-th integer number from range.
-func (g *IntegerGenerator) Value(number float64) (any, error) {
+func (g *IntegerGenerator) Value(number float64, _ map[string]any) (any, error) {
 	value := orderedInt64(g.From, g.To, number, g.totalValuesCount)
 
 	switch g.BitWidth {
@@ -37,6 +37,6 @@ func (g *IntegerGenerator) Value(number float64) (any, error) {
 	}
 }
 
-func (g *IntegerGenerator) ValuesCount() float64 {
+func (g *IntegerGenerator) ValuesCount(_ map[string]uint64) float64 {
 	return float64(uint64(g.To-g.From)) + 1
 }
