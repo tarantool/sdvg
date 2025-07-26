@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [latest](https://github.com/tarantool/sdvg/compare/0.0.1..master)
 
+### Changed
+
+- String templates replaced with jinja like
+
+### Breaking changes
+
+- The old version of string template in `type_params` of `string` type is no longer supported,
+  instead you should use `{{ pattern('pattern_expression') }}`
+
 ## [0.0.1](https://github.com/tarantool/sdvg/compare/36d0930..0.0.1) - 2025-07-21
 
 ### Added
@@ -38,7 +47,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Data partitioning
 - Ability to continue generation
 - Availability to ignore some models for generation
-
-### Changed
-
-- String templates replaced with jinja like

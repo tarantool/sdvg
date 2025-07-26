@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/tarantool/sdvg/internal/generator/common"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/otaviokr/topological-sort/toposort"
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/common"
 	"gopkg.in/yaml.v3"
 )
 
@@ -122,8 +122,8 @@ func parseErrsToString(errs []error) string {
 	return sb.String()
 }
 
-func topologicalSort(columns []*Column) ([]string, error) {
-	graph := make(map[string][]string)
+func TopologicalSort(columns []*Column) ([]string, error) {
+	graph := make(map[string][]string, len(columns))
 	for _, c := range columns {
 		graph[c.Name] = make([]string, 0)
 

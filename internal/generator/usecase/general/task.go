@@ -84,9 +84,21 @@ func newGenerators(cfg *models.GenerationConfig) (map[string]*generator.ColumnGe
 	generators := make(map[string]*generator.ColumnGenerator)
 
 	for modelName, model := range cfg.Models {
-		distinctValuesCountByColumn := make(map[string]uint64)
+		distinctValuesCountByColumn := make(map[string]uint64, len(model.Columns))
 
-		for _, column := range model.Columns {
+		sortedColumns, err := models.TopologicalSort(model.Columns)
+		if err != nil {
+			return nil, errors.WithMessagef(err, "failed to sorting columns by dependencies for model %q", modelName)
+		}
+
+		originIndexes := make(map[string]int, len(model.Columns))
+		for index, column := range model.Columns {
+			originIndexes[column.Name] = index
+		}
+
+		for _, columnName := range sortedColumns {
+			column := model.Columns[originIndexes[columnName]]
+
 			dataModelName := modelName
 			dataModel := model
 			dataColumn := column
@@ -173,6 +185,8 @@ func (t *Task) WaitError() error {
 }
 
 // generateAndSaveValues function generates values for all model.
+//
+//nolint:cyclop
 func (t *Task) generateAndSaveValues(ctx context.Context) error {
 	var err error
 
@@ -203,6 +217,16 @@ func (t *Task) generateAndSaveValues(ctx context.Context) error {
 			continue
 		}
 
+		columnsTopologicalOrder, err := models.TopologicalSort(model.Columns)
+		if err != nil {
+			return errors.WithMessagef(err, "failed to sorting columns by dependencies for model %q", modelName)
+		}
+
+		originColumnsIndexes := make(map[string]int, len(model.Columns))
+		for index, column := range model.Columns {
+			originColumnsIndexes[column.Name] = index
+		}
+
 		pool.Add(1)
 
 		go func() {
@@ -223,7 +247,11 @@ func (t *Task) generateAndSaveValues(ctx context.Context) error {
 					generators = append(generators, t.generators[columnKey].NewBatchGenerator(rowsCount))
 				}
 
-				pool.Submit(ctx, outputSyncer.WorkerSyncer(), model, generators, rowsCount)
+				pool.Submit(
+					ctx, outputSyncer.WorkerSyncer(),
+					modelName, columnsTopologicalOrder, originColumnsIndexes,
+					generators, rowsCount,
+				)
 			}
 		}()
 	}
@@ -257,7 +285,8 @@ func (t *Task) skipRows() {
 // generateAndSaveBatch function generate batch of values for selected column and send it to output.
 func (t *Task) generateAndSaveBatch(
 	ctx context.Context, outputSync *common.WorkerSyncer,
-	model *models.Model, generators []*generator.BatchGenerator, count uint64,
+	modelName string, columnsTopologicalOrder []string, originColumnsIndexes map[string]int,
+	generators []*generator.BatchGenerator, count uint64,
 ) error {
 	defer outputSync.Done(ctx)
 
@@ -268,20 +297,15 @@ func (t *Task) generateAndSaveBatch(
 		}
 	}
 
-	originIndexes := make(map[string]int, len(model.Columns))
-	for index, column := range model.Columns {
-		originIndexes[column.Name] = index
-	}
-
 	for i := range count {
-		generatedValues := make(map[string]any)
+		generatedValues := make(map[string]any, len(originColumnsIndexes))
 
-		for _, columnName := range model.ColumnsTopologicalOrder {
+		for _, columnName := range columnsTopologicalOrder {
 			if common.CtxClosed(ctx) {
 				return &common.ContextCancelError{}
 			}
 
-			idx := originIndexes[columnName]
+			idx := originColumnsIndexes[columnName]
 
 			value, err := generators[idx].Value(generatedValues)
 			if err != nil {
@@ -295,12 +319,12 @@ func (t *Task) generateAndSaveBatch(
 
 	outputSync.WaitPrevious(ctx)
 
-	err := t.output.HandleRowsBatch(ctx, model.Name, batch)
+	err := t.output.HandleRowsBatch(ctx, modelName, batch)
 	if err != nil {
 		return errors.WithMessage(err, "failed to save batch to output")
 	}
 
-	t.progress.Add(model.Name, count)
+	t.progress.Add(modelName, count)
 
 	return nil
 }
