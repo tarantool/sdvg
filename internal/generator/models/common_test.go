@@ -106,7 +106,7 @@ func TestTopologicalSort(t *testing.T) {
 	testFunc := func(t *testing.T, tc testCase) {
 		t.Helper()
 
-		actual, err := topologicalSort(tc.columns)
+		actual, err := TopologicalSort(tc.columns)
 		require.Equal(t, tc.wantErr, err != nil)
 		require.Equal(t, tc.expected, actual)
 	}
