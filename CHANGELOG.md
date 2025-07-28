@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking changes
 
 - The old version of string template in `type_params` of `string` type is no longer supported,
-  instead you should use `{{ pattern('pattern_expression') }}`
+  `{{ pattern('pattern_expression') }}` should be used instead.
 
 ## [0.0.1](https://github.com/tarantool/sdvg/compare/36d0930..0.0.1) - 2025-07-21
 
