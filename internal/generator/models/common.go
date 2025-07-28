@@ -9,9 +9,7 @@ import (
 	"strings"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/otaviokr/topological-sort/toposort"
 	"github.com/pkg/errors"
-	"github.com/tarantool/sdvg/internal/generator/common"
 	"gopkg.in/yaml.v3"
 )
 
@@ -120,26 +118,4 @@ func parseErrsToString(errs []error) string {
 	}
 
 	return sb.String()
-}
-
-func TopologicalSort(columns []*Column) ([]string, error) {
-	graph := make(map[string][]string, len(columns))
-	for _, c := range columns {
-		graph[c.Name] = make([]string, 0)
-
-		for _, r := range c.Ranges {
-			if r.StringParams == nil || r.StringParams.Template == "" {
-				continue
-			}
-
-			graph[c.Name] = common.ExtractValuesFromTemplate(r.StringParams.Template)
-		}
-	}
-
-	sortedVertexes, err := toposort.ReverseTarjan(graph)
-	if err != nil {
-		return nil, errors.New(err.Error())
-	}
-
-	return sortedVertexes, nil
 }

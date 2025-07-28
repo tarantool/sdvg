@@ -188,12 +188,16 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 }
 
 // templateString returns n-th string by template.
-func (g *StringGenerator) templateString(number float64, generatedValues map[string]any) (string, error) {
-	generatedValues["pattern"] = func(pattern string) *pongo2.Value {
+func (g *StringGenerator) templateString(number float64, rowValues map[string]any) (string, error) {
+	if rowValues == nil {
+		rowValues = make(map[string]any)
+	}
+
+	rowValues["pattern"] = func(pattern string) *pongo2.Value {
 		return pongo2.AsSafeValue(g.patternString(number, pattern))
 	}
 
-	val, err := g.template.Execute(generatedValues)
+	val, err := g.template.Execute(rowValues)
 	if err != nil {
 		return "", errors.New(err.Error())
 	}
@@ -441,9 +445,9 @@ func (g *StringGenerator) simpleString(number float64) string {
 }
 
 // Value returns n-th string from range.
-func (g *StringGenerator) Value(number float64, row map[string]any) (any, error) {
+func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, error) {
 	if g.Template != "" {
-		val, err := g.templateString(number, row)
+		val, err := g.templateString(number, rowValues)
 		if err != nil {
 			return nil, errors.WithMessage(err, "failed to template string")
 		}
