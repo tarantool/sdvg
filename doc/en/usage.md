@@ -158,8 +158,9 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 - `min_length`: Minimum string length. Default is `1`.
 - `max_length`: Maximum string length. Default is `32`.
 - `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
-- `template`: Template for string generation. Symbol `A` - any uppercase letter, symbol `a` - any lowercase letter,
-  symbol `0` - any digit, symbol `#` - any character. Other characters remain as-is.
+- `template`: Jinja-like template for string generation. Allows you to use any fields of the generated model and
+  specify the pattern of the string using the `pattern` function. Information about the filters and functions
+  available in template strings is described at the end of this section.
 - `locale`: Locale for generated strings. Supported values: `ru`, `en`. Default is `en`.
 - `without_large_letters`: Flag indicating if uppercase letters should be excluded from the string.
 - `without_small_letters`: Flag indicating if lowercase letters should be excluded from the string.
@@ -240,6 +241,18 @@ Structure of `output.params` for `tcs` format:
 Similar to the structure for the `http` format,
 except that the `format_template` field is immutable and always set to its default value.
 
+Filters and functions used in template strings:
+
+Template strings are implemented using the `pongo2` library, you can read
+all available filters and functions in the [pongo2](https://github.com/flosch/pongo2) repository.
+
+In addition, `1` function has been added:
+
+- pattern: allows you to create a string pattern using special characters.
+  The `A` symbol is any capital letter, the `a` symbol is any small letter,
+  symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
+  The function is available only in the `template` field of the `string` data type.
+
 #### Examples of data generation configuration
 
 Example data model configuration:
@@ -305,9 +318,13 @@ models:
       - name: passport
         type: string
         type_params:
-          template: AA 00 000 000
+          template: "{{ pattern('AA 00 000 000') }}"
         distinct_percentage: 1
         ordered: true
+      - name: email
+        type: string
+        type_params:
+          template: "{{ first_name_en | lower }}.{{ id }}@example.com"
       - name: rating
         type: float
         type_params:
