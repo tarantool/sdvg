@@ -223,13 +223,13 @@ Structure `output.params` for format `http`:
 
   Default value for the `format_template` field:
 
-```yaml
-format_template: |
-  {
-    "table_name": {{ .ModelName }},
-    "rows": {{ json .Rows }}
-  }
-```
+  ```yaml
+  format_template: |
+    {
+      "table_name": {{ .ModelName }},
+      "rows": {{ json .Rows }}
+    }
+  ```
 
 Structure of `output.params` for `tcs` format:
 
