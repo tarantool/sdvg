@@ -149,7 +149,9 @@ func newRangeGenerator(
 		distinctValuesCount = uint64(generatorValuesCount)
 	}
 
-	distinctValuesCountByColumn[column.Name] += distinctValuesCount
+	if distinctValuesCountByColumn != nil {
+		distinctValuesCountByColumn[column.Name] += distinctValuesCount
+	}
 
 	rangeOrdered := dataRange.Ordered
 	orderSeed := dataColumnSeed
@@ -201,7 +203,7 @@ type valueID struct {
 type BatchGenerator struct {
 	numbers    []valueID
 	nextNumber int
-	valuer     func(number valueID, generatedValues map[string]any) (any, error)
+	valuer     func(number valueID, rowValues map[string]any) (any, error)
 }
 
 func (cg *ColumnGenerator) NewBatchGenerator(batchSize uint64) *BatchGenerator {
@@ -227,14 +229,14 @@ func (cg *ColumnGenerator) NewBatchGenerator(batchSize uint64) *BatchGenerator {
 		}
 	}
 
-	valuer := func(id valueID, generatedValues map[string]any) (any, error) {
+	valuer := func(id valueID, rowValues map[string]any) (any, error) {
 		vg := cg.rangeGenerators[id.generatorIndex]
 
 		if vg.nullPercentage > 0 && fastRandomFloat(cg.dataColumnSeed+uint64(id.number)) < vg.nullPercentage {
 			return nil, nil //nolint:nilnil
 		}
 
-		return vg.generator.Value(id.number, generatedValues)
+		return vg.generator.Value(id.number, rowValues)
 	}
 
 	return &BatchGenerator{
@@ -244,8 +246,8 @@ func (cg *ColumnGenerator) NewBatchGenerator(batchSize uint64) *BatchGenerator {
 }
 
 // Value returns random value for described column.
-func (g *BatchGenerator) Value(generatedValues map[string]any) (any, error) {
-	res, err := g.valuer(g.numbers[g.nextNumber], generatedValues)
+func (g *BatchGenerator) Value(rowValues map[string]any) (any, error) {
+	res, err := g.valuer(g.numbers[g.nextNumber], rowValues)
 	g.nextNumber++
 	g.nextNumber %= len(g.numbers)
 
