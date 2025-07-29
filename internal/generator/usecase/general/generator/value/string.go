@@ -1,13 +1,16 @@
 package value
 
 import (
+	"bytes"
+	"fmt"
 	"math"
 	"math/big"
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
+	"text/template"
 
-	"github.com/flosch/pongo2"
 	"github.com/pkg/errors"
 	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
@@ -17,7 +20,8 @@ import (
 )
 
 var (
-	rePatternVal = regexp.MustCompile(`pattern\((?:'([^']*)'|"([^"]*)")\)`)
+	rePatternFunc   = regexp.MustCompile(`{{\s*pattern\(\s*(?:'([^']*)'|"([^"]*)")\s*\)\s*}}`)
+	rePatternFilter = regexp.MustCompile(`{{\s*(?:pattern\s+"([^"]+)"|"([^"]+)"\s*\|\s*pattern)\s*}}`)
 )
 
 // Verify interface compliance in compile time.
@@ -27,8 +31,9 @@ var _ Generator = (*StringGenerator)(nil)
 type StringGenerator struct {
 	*models.ColumnStringParams
 	totalValuesCount uint64
+	template         *template.Template
+	bufPool          *sync.Pool
 	localeModule     locale.LocalModule
-	template         *pongo2.Template
 	charset          []rune
 	countByPrefix    []float64
 	sumByPrefix      []float64
@@ -38,12 +43,25 @@ type StringGenerator struct {
 //nolint:cyclop
 func (g *StringGenerator) Prepare() error {
 	if g.Template != "" {
-		template, err := pongo2.FromString(g.Template)
+		tmpl, err := template.New("template").
+			Funcs(template.FuncMap{
+				"upper": strings.ToUpper,
+				"lower": strings.ToLower,
+				"pattern": func(s string) string {
+					return fmt.Sprintf("{{pattern('%s')}}", s)
+				},
+			}).
+			Parse(g.Template)
 		if err != nil {
 			return errors.Errorf("failed to parse template: %s", err.Error())
 		}
 
-		g.template = template
+		g.template = tmpl
+		g.bufPool = &sync.Pool{
+			New: func() any {
+				return new(bytes.Buffer)
+			},
+		}
 	}
 
 	switch g.Locale {
@@ -188,19 +206,27 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 }
 
 // templateString returns n-th string by template.
+//
+//nolint:forcetypeassert
 func (g *StringGenerator) templateString(number float64, rowValues map[string]any) (string, error) {
-	if rowValues == nil {
-		rowValues = make(map[string]any)
-	}
+	buf := g.bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
 
-	rowValues["pattern"] = func(pattern string) *pongo2.Value {
-		return pongo2.AsSafeValue(g.patternString(number, pattern))
-	}
-
-	val, err := g.template.Execute(rowValues)
+	err := g.template.Execute(buf, rowValues)
 	if err != nil {
+		g.bufPool.Put(buf)
+
 		return "", errors.New(err.Error())
 	}
+
+	val := buf.String()
+	g.bufPool.Put(buf)
+
+	val = rePatternFunc.ReplaceAllStringFunc(val, func(m string) string {
+		sub := rePatternFunc.FindStringSubmatch(m)
+
+		return g.patternString(number, sub[1])
+	})
 
 	return val, nil
 }
@@ -514,7 +540,7 @@ func (g *StringGenerator) ValuesCount(distinctValuesCountByColumn map[string]uin
 func (g *StringGenerator) templateCardinality(distinctValuesCountByColumn map[string]uint64) float64 {
 	total := 1.0
 
-	patternValMatches := rePatternVal.FindAllStringSubmatch(g.Template, -1)
+	patternValMatches := rePatternFilter.FindAllStringSubmatch(g.Template, -1)
 	for _, match := range patternValMatches {
 		pattern := match[1]
 		if pattern == "" {

@@ -5,7 +5,6 @@ go 1.23.8
 require (
 	github.com/apache/arrow-go/v18 v18.2.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20250203114958-f07ae1af69ae
-	github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/ilyakaznacheev/cleanenv v1.5.0
