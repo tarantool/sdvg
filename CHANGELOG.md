@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- String templates replaced with jinja like
+- Field `template` in the `string` data type now not only specifies the pattern, 
+  but also allows you to use the values of any columns of the generated model.
 
 ### Breaking changes
 
 - The old version of string template in `type_params` of `string` type is no longer supported,
-  `{{ pattern('pattern_expression') }}` should be used instead.
+  `{{ "pattern_expression" | pattern }}` should be used instead.
 
 ## [0.0.1](https://github.com/tarantool/sdvg/compare/36d0930..0.0.1) - 2025-07-21
 

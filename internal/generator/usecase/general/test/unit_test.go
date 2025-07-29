@@ -531,9 +531,9 @@ func TestString(t *testing.T) {
 		{&models.ColumnStringParams{LogicalType: models.LastNameType, MinLength: 4, MaxLength: 7}, 4, 7},
 		{&models.ColumnStringParams{LogicalType: models.PhoneType, MinLength: 10, MaxLength: 10}, 10, 10},
 		{&models.ColumnStringParams{MinLength: 100, MaxLength: 100}, 100, 100},
-		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "en"}, 8, 8},
-		{&models.ColumnStringParams{Template: "{{ pattern('AAaa00##') }}", Locale: "ru"}, 8, 8},
-		{&models.ColumnStringParams{Template: "{{ pattern('0123456789012345678901234567890123456789') }}"}, 40, 40},
+		{&models.ColumnStringParams{Template: `{{ pattern "AAaa00##" }}`, Locale: "en"}, 8, 8},
+		{&models.ColumnStringParams{Template: `{{ pattern "AAaa00##" }}`, Locale: "ru"}, 8, 8},
+		{&models.ColumnStringParams{Template: `{{ pattern "0123456789012345678901234567890123456789" }}`}, 40, 40},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 3, MaxLength: 5}, 3, 5},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512}, 510, 512},
@@ -656,7 +656,7 @@ func TestString(t *testing.T) {
 		{
 			&models.ColumnStringParams{
 				Locale:   "en",
-				Template: "{{ field }}",
+				Template: "{{ .field }}",
 			},
 			map[string]uint64{
 				"field": 11,
@@ -666,7 +666,7 @@ func TestString(t *testing.T) {
 		{
 			&models.ColumnStringParams{
 				Locale:   "en",
-				Template: "{{ pattern('A00') }}",
+				Template: `{{ pattern "A00" }}`,
 			},
 			nil,
 			2600,
@@ -674,7 +674,7 @@ func TestString(t *testing.T) {
 		{
 			&models.ColumnStringParams{
 				Locale:   "ru",
-				Template: "{{ field }}{{ pattern('a0#') }}",
+				Template: `{{ .field }}{{ pattern "a0#" }}`,
 			},
 			map[string]uint64{
 				"field": 10,
@@ -707,7 +707,7 @@ func TestString(t *testing.T) {
 		Ranges: []*models.Params{
 			{
 				TypeParams: &models.ColumnStringParams{
-					Template: "{{ id }}.{{ pattern('00') }}@example.com",
+					Template: `{{ .id }}.{{ pattern "00" }}@example.com`,
 				},
 				DistinctPercentage: 1,
 			},
@@ -928,7 +928,7 @@ func TestIdempotence(t *testing.T) {
 						Name: "passport",
 						Type: "string",
 						Ranges: []*models.Params{{TypeParams: &models.ColumnStringParams{
-							Template: "{{ pattern('AA 00 000 000') }}",
+							Template: `{{ pattern "AA 00 000 000" }}`,
 						},
 							NullPercentage: 0.5}},
 					},
