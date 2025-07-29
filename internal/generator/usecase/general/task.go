@@ -269,7 +269,8 @@ func (t *Task) generateAndSaveValues(ctx context.Context) error {
 
 				pool.Submit(
 					ctx, outputSyncer.WorkerSyncer(),
-					modelName, columnsTopologicalOrder, originColumnsIndexes, hasDependencies,
+					modelName, hasDependencies,
+					columnsTopologicalOrder, originColumnsIndexes,
 					generators, rowsCount,
 				)
 			}
@@ -305,7 +306,8 @@ func (t *Task) skipRows() {
 // generateAndSaveBatch function generate batch of values for selected column and send it to output.
 func (t *Task) generateAndSaveBatch(
 	ctx context.Context, outputSync *common.WorkerSyncer,
-	modelName string, columnsTopologicalOrder []string, originColumnsIndexes map[string]int, hasDependencies bool,
+	modelName string, hasDependencies bool,
+	columnsTopologicalOrder []string, originColumnsIndexes map[string]int,
 	generators []*generator.BatchGenerator, count uint64,
 ) error {
 	defer outputSync.Done(ctx)

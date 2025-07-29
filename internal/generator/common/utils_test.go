@@ -713,18 +713,13 @@ func TestExtractValuesFromTemplate(t *testing.T) {
 		},
 		{
 			name:     "Valid template",
-			template: "{{ foo }}.{{boo}}",
+			template: "{{ .foo }}.{{.boo}}",
 			expected: []string{"foo", "boo"},
 		},
 		{
-			name:     "Template with filters",
-			template: "{{ foo | upper | lower }}",
-			expected: []string{"foo"},
-		},
-		{
 			name:     "Template with functions",
-			template: "{{ upper('foo') | lower }}@{{ boo }}",
-			expected: []string{"boo"},
+			template: "{{ upper .foo | lower }}@{{ .boo }}",
+			expected: []string{"foo", "boo"},
 		},
 		{
 			name:     "Invalid template",

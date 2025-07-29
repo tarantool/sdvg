@@ -361,7 +361,7 @@ func CtxClosed(ctx context.Context) bool {
 }
 
 func ExtractValuesFromTemplate(template string) []string {
-	re := regexp.MustCompile(`{{\s*([^\s|(){}]+)[^}]*}}`)
+	re := regexp.MustCompile(`{{.*?\.([^\s|}]+).*?}}`)
 	matches := re.FindAllStringSubmatch(template, -1)
 
 	values := make([]string, 0, len(matches))
@@ -387,18 +387,18 @@ func ExtractValuesFromTemplate(template string) []string {
 func TopologicalSort[T any](items []T, nodeFunc func(T) (string, []string)) ([]string, bool, error) {
 	var (
 		graph           = make(map[string][]string, len(items))
-		sortedVertexes  = make([]string, 0, len(items))
+		sortedVertexes  = make([]string, len(items))
 		hasDependencies bool
 		err             error
 	)
 
-	for _, item := range items {
+	for i, item := range items {
 		name, dependencies := nodeFunc(item)
 		if len(dependencies) > 0 {
 			hasDependencies = true
 		}
 
-		sortedVertexes = append(sortedVertexes, name)
+		sortedVertexes[i] = name
 		graph[name] = dependencies
 	}
 
