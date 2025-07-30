@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/"/>
+    </url>
+    <url>
+        <loc>Nonechangelog/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonechangelog/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/changelog/"/>
+    </url>
+    <url>
+        <loc>Nonecontributing/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonecontributing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/contributing/"/>
+    </url>
+    <url>
+        <loc>Nonelicense/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelicense/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/license/"/>
+    </url>
+    <url>
+        <loc>Noneoverview/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneoverview/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/overview/"/>
+    </url>
+    <url>
+        <loc>Noneusage/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneusage/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/usage/"/>
+    </url>
+    <url>
+        <loc>Noneru/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+    </url>
+    <url>
+        <loc>Noneru/changelog/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/changelog/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonechangelog/"/>
+    </url>
+    <url>
+        <loc>Noneru/contributing/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonecontributing/"/>
+    </url>
+    <url>
+        <loc>Noneru/license/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/license/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelicense/"/>
+    </url>
+    <url>
+        <loc>Noneru/overview/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/overview/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneoverview/"/>
+    </url>
+    <url>
+        <loc>Noneru/usage/</loc>
+        <lastmod>2025-07-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneru/usage/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneusage/"/>
+    </url>
+</urlset>
