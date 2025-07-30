@@ -2,26 +2,18 @@ package value
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"math/big"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/en"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/ru"
-)
-
-var (
-	rePatternFunc   = regexp.MustCompile(`{{\s*pattern\(\s*(?:'([^']*)'|"([^"]*)")\s*\)\s*}}`)
-	rePatternFilter = regexp.MustCompile(`{{\s*(?:pattern\s+"([^"]+)"|"([^"]+)"\s*\|\s*pattern)\s*}}`)
 )
 
 // Verify interface compliance in compile time.
@@ -44,12 +36,10 @@ type StringGenerator struct {
 func (g *StringGenerator) Prepare() error {
 	if g.Template != "" {
 		tmpl, err := template.New("template").
+			Option("missingkey=error").
 			Funcs(template.FuncMap{
 				"upper": strings.ToUpper,
 				"lower": strings.ToLower,
-				"pattern": func(s string) string {
-					return fmt.Sprintf("{{pattern('%s')}}", s)
-				},
 			}).
 			Parse(g.Template)
 		if err != nil {
@@ -208,7 +198,7 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 // templateString returns n-th string by template.
 //
 //nolint:forcetypeassert
-func (g *StringGenerator) templateString(number float64, rowValues map[string]any) (string, error) {
+func (g *StringGenerator) templateString(rowValues map[string]any) (string, error) {
 	buf := g.bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 
@@ -222,18 +212,12 @@ func (g *StringGenerator) templateString(number float64, rowValues map[string]an
 	val := buf.String()
 	g.bufPool.Put(buf)
 
-	val = rePatternFunc.ReplaceAllStringFunc(val, func(m string) string {
-		sub := rePatternFunc.FindStringSubmatch(m)
-
-		return g.patternString(number, sub[1])
-	})
-
 	return val, nil
 }
 
 // patternString returns n-th string by pattern.
-func (g *StringGenerator) patternString(number float64, pattern string) string {
-	val := []rune(pattern)
+func (g *StringGenerator) patternString(number float64) string {
+	val := []rune(g.Pattern)
 	index := number / float64(g.totalValuesCount)
 
 	for i := range val {
@@ -473,12 +457,16 @@ func (g *StringGenerator) simpleString(number float64) string {
 // Value returns n-th string from range.
 func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, error) {
 	if g.Template != "" {
-		val, err := g.templateString(number, rowValues)
+		val, err := g.templateString(rowValues)
 		if err != nil {
-			return nil, errors.WithMessage(err, "failed to template string")
+			return nil, errors.WithMessage(err, "failed to render template string")
 		}
 
 		return val, nil
+	}
+
+	if g.Pattern != "" {
+		return g.patternString(number), nil
 	}
 
 	switch g.LogicalType {
@@ -496,9 +484,31 @@ func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, 
 }
 
 //nolint:cyclop
-func (g *StringGenerator) ValuesCount(distinctValuesCountByColumn map[string]uint64) float64 {
+func (g *StringGenerator) ValuesCount() float64 {
 	if g.Template != "" {
-		return g.templateCardinality(distinctValuesCountByColumn)
+		return 1.0
+	}
+
+	if g.Pattern != "" {
+		total := 1.0
+
+		if count := strings.Count(g.Pattern, "A"); count > 0 {
+			total *= math.Pow(float64(len(g.localeModule.LargeLetters())), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "a"); count > 0 {
+			total *= math.Pow(float64(len(g.localeModule.SmallLetters())), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "0"); count > 0 {
+			total *= math.Pow(float64(len(locale.Numbers)), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "#"); count > 0 {
+			total *= math.Pow(float64(len(locale.SpecialChars)), float64(count))
+		}
+
+		return total
 	}
 
 	switch g.LogicalType {
@@ -535,49 +545,4 @@ func (g *StringGenerator) ValuesCount(distinctValuesCountByColumn map[string]uin
 	}
 
 	return totalCount
-}
-
-func (g *StringGenerator) templateCardinality(distinctValuesCountByColumn map[string]uint64) float64 {
-	total := 1.0
-
-	patternValMatches := rePatternFilter.FindAllStringSubmatch(g.Template, -1)
-	for _, match := range patternValMatches {
-		pattern := match[1]
-		if pattern == "" {
-			pattern = match[2]
-		}
-
-		total *= g.patternCardinality(pattern)
-	}
-
-	columns := common.ExtractValuesFromTemplate(g.Template)
-	for _, column := range columns {
-		if count, ok := distinctValuesCountByColumn[column]; ok && count > 0 {
-			total *= float64(count)
-		}
-	}
-
-	return total
-}
-
-func (g *StringGenerator) patternCardinality(pattern string) float64 {
-	total := 1.0
-
-	if count := strings.Count(pattern, "A"); count > 0 {
-		total *= math.Pow(float64(len(g.localeModule.LargeLetters())), float64(count))
-	}
-
-	if count := strings.Count(pattern, "a"); count > 0 {
-		total *= math.Pow(float64(len(g.localeModule.SmallLetters())), float64(count))
-	}
-
-	if count := strings.Count(pattern, "0"); count > 0 {
-		total *= math.Pow(float64(len(locale.Numbers)), float64(count))
-	}
-
-	if count := strings.Count(pattern, "#"); count > 0 {
-		total *= math.Pow(float64(len(locale.SpecialChars)), float64(count))
-	}
-
-	return total
 }

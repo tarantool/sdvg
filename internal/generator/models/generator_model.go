@@ -426,6 +426,16 @@ func (p *Params) Validate() []error {
 		errs = append(errs, datetimeParamsErrs...)
 	}
 
+	if p.StringParams != nil && p.StringParams.Template != "" {
+		if common.Any(
+			p.Ordered,
+			p.DistinctPercentage != 0,
+			p.DistinctCount != 0,
+		) {
+			errs = append(errs, errors.New("forbidden to use string template with distinct params or ordered"))
+		}
+	}
+
 	// must be called only after parsing, filling defaults and validation of TypeParams.
 	if p.Values != nil {
 		if err := p.PostProcess(); err != nil {
@@ -674,6 +684,7 @@ type ColumnStringParams struct {
 	Locale              string `backup:"true" json:"locale"                yaml:"locale"`
 	LogicalType         string `backup:"true" json:"logical_type"          yaml:"logical_type"`
 	Template            string `backup:"true" json:"template"              yaml:"template"`
+	Pattern             string `backup:"true" json:"pattern"               yaml:"pattern"`
 	WithoutLargeLetters bool   `backup:"true" json:"without_large_letters" yaml:"without_large_letters"`
 	WithoutSmallLetters bool   `backup:"true" json:"without_small_letters" yaml:"without_small_letters"`
 	WithoutNumbers      bool   `backup:"true" json:"without_numbers"       yaml:"without_numbers"`
@@ -702,6 +713,10 @@ func (p *ColumnStringParams) FillDefaults() {
 
 func (p *ColumnStringParams) Validate() []error {
 	var errs []error
+
+	if p.Template != "" && p.Pattern != "" {
+		errs = append(errs, errors.Errorf("forbidden to use template and pattern at the same time"))
+	}
 
 	if p.MinLength > p.MaxLength {
 		errs = append(errs, errors.Errorf(
