@@ -156,7 +156,7 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 - `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
 - `template`: Template for string generation. Allows you to use the values of any columns of the generated model.
   Information about the functions available in template strings is described at the end of this section.
-  Cannot coexist with `ordered`, `distinct_percentage` or `distinct_count`.
+  Cannot coexist with `ordered`, `distinct_percentage` and `distinct_count`.
 - `pattern`: Pattern for string generation. The `A` symbol is any capital letter, the `a` symbol is any small letter,
   symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
 - `locale`: Locale for generated strings. Supported values: `ru`, `en`. Default is `en`.
@@ -236,7 +236,7 @@ Structure of `output.params` for `tcs` format:
 Similar to the structure for the `http` format,
 except that the `format_template` field is immutable and always set to its default value.
 
-Using Template Strings::
+Using Template Strings:
 
 Template strings are implemented using the standard golang library, you can read about
 all its features and available functions in this [documentation](https://pkg.go.dev/text/template).

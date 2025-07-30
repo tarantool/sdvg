@@ -427,12 +427,12 @@ func (p *Params) Validate() []error {
 	}
 
 	if p.StringParams != nil && p.StringParams.Template != "" {
-		if common.Any(
-			p.Ordered,
-			p.DistinctPercentage != 0,
-			p.DistinctCount != 0,
-		) {
-			errs = append(errs, errors.New("forbidden to use string template with distinct params or ordered"))
+		if p.Ordered {
+			errs = append(errs, errors.New("forbidden to use string template with ordered"))
+		}
+
+		if common.Any(p.DistinctPercentage != 0, p.DistinctCount != 0) {
+			errs = append(errs, errors.New("forbidden to use string template with distinct params"))
 		}
 	}
 
