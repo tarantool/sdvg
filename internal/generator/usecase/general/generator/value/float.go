@@ -26,7 +26,7 @@ func (g *FloatGenerator) SetTotalCount(totalValuesCount uint64) error {
 }
 
 // Value returns n-th float number from range.
-func (g *FloatGenerator) Value(number float64) (any, error) {
+func (g *FloatGenerator) Value(number float64, _ map[string]any) (any, error) {
 	value := orderedFloat64(g.From, g.To, number, g.totalValuesCount)
 
 	if g.BitWidth == 32 { //nolint:mnd
