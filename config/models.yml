@@ -62,9 +62,13 @@ models:
       - name: passport
         type: string
         type_params:
-          template: "{{ pattern('AA 00 000 000') }}"
+          pattern: AA 00 000 000
         distinct_percentage: 1
         ordered: true
+      - name: email
+        type: string
+        type_params:
+          template: "{{ .first_name_en | lower }}.{{ .id }}@email.com"
       - name: created
         type: datetime
         type_params:
