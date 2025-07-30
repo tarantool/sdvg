@@ -37,6 +37,6 @@ func (g *IntegerGenerator) Value(number float64, _ map[string]any) (any, error) 
 	}
 }
 
-func (g *IntegerGenerator) ValuesCount(_ map[string]uint64) float64 {
+func (g *IntegerGenerator) ValuesCount() float64 {
 	return float64(uint64(g.To-g.From)) + 1
 }

@@ -43,6 +43,6 @@ func (g *UUIDGenerator) Value(number float64, _ map[string]any) (any, error) {
 	return res, nil
 }
 
-func (g *UUIDGenerator) ValuesCount(_ map[string]uint64) float64 {
+func (g *UUIDGenerator) ValuesCount() float64 {
 	return float64(1<<(128-10) - 1) //nolint:mnd
 }

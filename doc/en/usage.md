@@ -158,9 +158,11 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 - `min_length`: Minimum string length. Default is `1`.
 - `max_length`: Maximum string length. Default is `32`.
 - `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
-- `template`: Template for string generation. Allows you to use the values of any columns of the generated model and
-  specify the pattern of the string using the `pattern` function. Information about the functions
-  available in template strings is described at the end of this section.
+- `template`: Template for string generation. Allows you to use the values of any columns of the generated model.
+  Information about the functions available in template strings is described at the end of this section.
+  Cannot coexist with `ordered`, `distinct_percentage` or `distinct_count`.
+- `pattern`: Pattern for string generation. The `A` symbol is any capital letter, the `a` symbol is any small letter,
+  symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
 - `locale`: Locale for generated strings. Supported values: `ru`, `en`. Default is `en`.
 - `without_large_letters`: Flag indicating if uppercase letters should be excluded from the string.
 - `without_small_letters`: Flag indicating if lowercase letters should be excluded from the string.
@@ -253,12 +255,8 @@ Function calls:
 - direct call: `{{ upper .name }}`.
 - using pipe: `{{ .name | upper }}`.
 
-In addition to standard functions, the project provides `5` custom functions:
+In addition to standard functions, the project provides `4` custom functions:
 
-- `pattern`: allows you to create a string pattern using special characters.
-  The `A` symbol is any capital letter, the `a` symbol is any small letter,
-  symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
-  The function is available only in the `template` field of the `string` data type.
 - `upper`: converts the string to upper case.
 - `lower`: converts the string to lower case.
 - `len`: returns the length of the element.
@@ -266,7 +264,7 @@ In addition to standard functions, the project provides `5` custom functions:
 
 Usage restrictions:
 
-The `pattern`, `lower`, and `upper` functions are available only in the `template` field of the `string` data type.
+The `lower`, and `upper` functions are available only in the `template` field of the `string` data type.
 The `len` and `json` functions are available only in the `format_template` field of the output parameters.
 
 #### Examples of data generation configuration
@@ -334,7 +332,7 @@ models:
       - name: passport
         type: string
         type_params:
-          template: '{{ "AA 00 000 000" | pattern }}'
+          pattern: AA 00 000 000
         distinct_percentage: 1
         ordered: true
       - name: email

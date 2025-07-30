@@ -367,14 +367,7 @@ func ExtractValuesFromTemplate(template string) []string {
 	values := make([]string, 0, len(matches))
 
 	for _, match := range matches {
-		expr := match[0]
-		val := match[1]
-
-		if strings.Contains(expr, "(") && strings.Contains(expr, ")") {
-			continue
-		}
-
-		values = append(values, val)
+		values = append(values, match[1])
 	}
 
 	return values
