@@ -205,9 +205,7 @@ func (t *Task) WaitError() error {
 // generateAndSaveValues function generates values for all model.
 //
 
-func (t *Task) generateAndSaveValues(ctx context.Context) error {
-	var err error
-
+func (t *Task) generateAndSaveValues(ctx context.Context) (err error) {
 	ctx, cancelCtx := context.WithCancelCause(ctx)
 	defer cancelCtx(err)
 
@@ -286,7 +284,7 @@ func (t *Task) generateAndSaveValues(ctx context.Context) error {
 
 	slog.Debug("generating values for all models finished")
 
-	return nil
+	return err
 }
 
 func (t *Task) skipRows() {

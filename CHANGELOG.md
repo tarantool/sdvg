@@ -12,10 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `template` field in the `string` data type is now used to generate template strings 
  with the ability to use the values of any columns of the generated model.
 
+- In the `format_template` field of the output parameters, the variable `ColumnNames` is now available.
+
 ### Breaking changes
 
 - Using `template` field to specify a string pattern like `Aa0#` is no longer supported,
   `pattern` should be used instead.
+
+- The `Rows` variable in  the `format_template` filed of the output parameters is now a two-dimensional array,
+  not a map.
 
 ## [0.0.1](https://github.com/tarantool/sdvg/compare/36d0930..0.0.1) - 2025-07-21
 

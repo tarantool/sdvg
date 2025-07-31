@@ -192,44 +192,23 @@ Structure `output.params` for format `http`:
 - `batch_size`: Number of data records sent in one request. Default is `1000`.
 - `workers_count`: Number of threads for writing data. Default is `1`. *Experimental field.*
 - `headers`: HTTP request headers specified as a dictionary. Default is none.
-- `format_template`: Template-based format for sending data, configured using Golang templates.  
-  There are 2 fields available for use in `format_template`:
+- `format_template`: Template-based format for sending data, configured using templates.  
+  There are 3 fields available for use in `format_template`:
     * `ModelName` - name of the model.
-    * `Rows` - array of records, where each element is a dictionary representing a data row.
-      Dictionary keys correspond to column names, and values correspond to data in those columns.
-
-  You can read about the available functions and the use of template strings at the end of this section.
-
-  Example value for the `format_template` field:
-
-  ```yaml
-  format_template: |
-    {
-      "table_name": "{{ .ModelName }}",
-      "meta": {
-        "rows_count": {{ len .Rows }}
-      },
-      "rows": [
-        {{- range $i, $row := .Rows }}
-          {{- if $i}},{{ end }}
-          {
-            "id": {{ index $row "id" }},
-            "username": "{{ index $row "name" }}"
-          }
-        {{- end }}
-      ]
-    }
-  ```
+    * `ColumnNames` - array of column names.
+    * `Rows` - a two-dimensional array, where each outer element represents a table row,
+      and the inner element contains values of this row in the same order as `ColumnNames`.
 
   Default value for the `format_template` field:
-
   ```yaml
   format_template: |
     {
       "table_name": {{ .ModelName }},
-      "rows": {{ json .Rows }}
+      "rows": {{ rowsJson .ColumnNames .Rows }}
     }
   ```
+  
+  You can read about the available functions and the use of template strings at the end of this section.
 
 Structure of `output.params` for `tcs` format:
 
@@ -251,17 +230,27 @@ Function calls:
 - direct call: `{{ upper .name }}`.
 - using pipe: `{{ .name | upper }}`.
 
-In addition to standard functions, the project provides `4` custom functions:
+The following is a list of additional functions available in certain template fields:
+
+In the `template` field of `string` data type:
 
 - `upper`: converts the string to upper case.
 - `lower`: converts the string to lower case.
+
+In the `format_template` field of the output parameters:
+
 - `len`: returns the length of the element.
 - `json`: converts the element to a JSON string.
-
-Usage restrictions:
-
-The `lower`, and `upper` functions are available only in the `template` field of the `string` data type.
-The `len` and `json` functions are available only in the `format_template` field of the output parameters.
+- `rowsJson`: converts an array of column names (`ColumnNames`) and a two-dimensional array of rows (`Rows`)
+  into a JSON array whose elements are objects of the form:
+  ```
+  {
+    "columnName1": value1,
+    "columnName2": value2,
+    ...
+  }
+  ```
+  where each object corresponds to one row of the table.
 
 #### Examples of data generation configuration
 
@@ -413,7 +402,7 @@ output:
         "meta": {
           "rows_count": {{ len .Rows }}
         },
-        "rows": {{ json .Rows }}
+        "rows": {{ rowsJson .ColumnNames .Rows }}
       }
 
 models:
