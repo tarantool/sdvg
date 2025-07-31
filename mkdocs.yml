@@ -17,9 +17,8 @@ nav:
   - usage.md
   - contributing.md
   - overview.md
-  - About:
-    - changelog.md
-    - license.md
+  - changelog.md
+  - license.md
 
 extra_css:
   - common/extra.css
@@ -30,8 +29,8 @@ theme:
   name: "material"
   language: "en"
 
-  logo: "assets/logo.png"
-  favicon: "assets/logo.png"
+  logo: "https://raw.githubusercontent.com/tarantool/sdvg/refs/heads/master/asset/favicon.png"
+  favicon: "https://raw.githubusercontent.com/tarantool/sdvg/refs/heads/master/asset/favicon.png"
   icon:
     repo: "fontawesome/brands/github"
 
@@ -58,23 +57,20 @@ theme:
         name: Switch theme
 
   features:
-    - content.code.copy # copy button
+    - content.code.copy # copy button for code sections
 
     - navigation.footer
     - navigation.path
     - navigation.indexes
     - navigation.sections
     - navigation.expand
-    - navigation.tabs
-    - navigation.tabs.sticky
 
     - toc.follow
-    - toc.integrate
 
     - search.highlight
 
 extra:
-  generator: false # disable note 'Made with Material for MkDocs'
+  generator: false # disable footer note 'Made with Material for MkDocs'
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -107,3 +103,5 @@ plugins:
         - locale: ru
           name: Russian
           build: true
+          nav_translations:
+            About: О проекте

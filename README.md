@@ -38,7 +38,7 @@
 SDVG (Synthetic Data Values Generator) is a tool for generating synthetic data.
 It supports various run modes, data types for generation, and output formats.
 
-![scheme.png](doc/assets/scheme.png)
+![scheme.png](./asset/scheme.png)
 
 Run modes:
 
