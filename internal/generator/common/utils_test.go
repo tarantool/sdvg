@@ -697,3 +697,119 @@ func TestWalkWithFilter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
 	}
 }
+
+func TestExtractValuesFromTemplate(t *testing.T) {
+	type testCase struct {
+		name     string
+		template string
+		expected []string
+	}
+
+	testCases := []testCase{
+		{
+			name:     "Empty template",
+			template: "",
+			expected: []string{},
+		},
+		{
+			name:     "Valid template",
+			template: "{{ .foo }}.{{.boo}}",
+			expected: []string{"foo", "boo"},
+		},
+		{
+			name:     "Template with functions",
+			template: "{{ upper .foo | lower }}@{{ .boo }}",
+			expected: []string{"foo", "boo"},
+		},
+		{
+			name:     "Invalid template",
+			template: "{_{ foo }}",
+			expected: []string{},
+		},
+	}
+
+	testFunc := func(t *testing.T, tc testCase) {
+		t.Helper()
+
+		actual := ExtractValuesFromTemplate(tc.template)
+		require.Equal(t, tc.expected, actual)
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
+	}
+}
+
+func TestTopologicalSort(t *testing.T) {
+	type node struct {
+		name string
+		deps []string
+	}
+
+	type testCase struct {
+		name             string
+		items            []node
+		wantErr          bool
+		wantDependencies bool
+		expected         []string
+	}
+
+	testCases := []testCase{
+		{
+			name:             "Empty items",
+			items:            []node{},
+			wantErr:          false,
+			wantDependencies: false,
+			expected:         []string{},
+		},
+		{
+			name: "Items with dependencies",
+			items: []node{
+				{name: "1", deps: []string{"3"}},
+				{name: "2", deps: []string{"4"}},
+				{name: "3", deps: []string{"2"}},
+				{name: "4", deps: []string{}},
+			},
+			wantErr:          false,
+			wantDependencies: true,
+			expected:         []string{"4", "2", "3", "1"},
+		},
+		{
+			name: "Items without dependencies",
+			items: []node{
+				{name: "1", deps: []string{}},
+				{name: "2", deps: []string{}},
+				{name: "3", deps: []string{}},
+			},
+			wantErr:          false,
+			wantDependencies: false,
+			expected:         []string{"1", "2", "3"},
+		},
+		{
+			name: "Items with cycle dependencies",
+			items: []node{
+				{name: "1", deps: []string{"2"}},
+				{name: "2", deps: []string{"1"}},
+			},
+			wantErr:          true,
+			wantDependencies: false,
+			expected:         nil,
+		},
+	}
+
+	testFunc := func(t *testing.T, tc testCase) {
+		t.Helper()
+
+		actual, hasDependencies, err := TopologicalSort(tc.items, func(node node) (string, []string) {
+			return node.name, node.deps
+		})
+
+		require.Equal(t, tc.wantErr, err != nil)
+		require.Equal(t, tc.wantDependencies, hasDependencies)
+		require.Equal(t, tc.expected, actual)
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) { testFunc(t, tc) })
+	}
+}
