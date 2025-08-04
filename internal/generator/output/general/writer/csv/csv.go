@@ -363,18 +363,33 @@ func (w *Writer) replaceFile(fileName string) error {
 	w.fileDescriptor = file
 
 	if !w.config.WithoutHeaders && (!w.continueGeneration || !fileExists) {
-		header := make([]string, len(w.model.Columns))
-		for i, column := range w.model.Columns {
-			header[i] = column.Name
-		}
-
-		err = w.csvWriter.Write(header)
+		err = w.csvWriter.Write(w.getHeaders())
 		if err != nil {
 			return errors.New(err.Error())
 		}
 	}
 
 	return nil
+}
+
+func (w *Writer) getHeaders() []string {
+	skip := make(map[string]struct{})
+
+	for _, partitionColumn := range w.model.PartitionColumns {
+		if !partitionColumn.WriteToOutput {
+			skip[partitionColumn.Name] = struct{}{}
+		}
+	}
+
+	headers := make([]string, 0, len(w.model.Columns)-len(skip))
+
+	for _, col := range w.model.Columns {
+		if _, exists := skip[col.Name]; !exists {
+			headers = append(headers, col.Name)
+		}
+	}
+
+	return headers
 }
 
 // WriteRow function sends row to internal queue.
