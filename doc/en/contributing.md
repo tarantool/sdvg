@@ -39,6 +39,7 @@ To edit the documentation, you need to make changes for each supported language
 within its corresponding directory in the [./doc](../../doc) directory.
 
 To add a new section to the documentation, you must:
+
 1. Create a new `.md` file in the root of the [doc/en](../../doc/en) directory.
 2. Add the file name to the `nav` section in the [mkdocs.yml](../../mkdocs.yml) configuration file.
 3. Perform the same steps for other languages if they need to be supported.
@@ -47,6 +48,7 @@ To add a new section to the documentation, you must:
 section of [mkdocs.yml](../../mkdocs.yml).
 
 To locally check the documentation site's layout, you need to:
+
 1. Install the Python dependencies: `make docs/prepare`.
 2. Run the local site hosting with the command `make docs/serve`.
    The site will be available at [127.0.0.1:8000](http://127.0.0.1:8000).
