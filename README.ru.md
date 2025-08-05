@@ -2,9 +2,6 @@
 
 # Synthetic Data Values Generator (SDVG)
 
-Документация доступна на 2-ух языках:
-- на [сайте](https://tarantool.github.io/sdvg/)
-- [оффлайн в формате Markdown](./doc/)
 
 </div>
 
@@ -30,8 +27,8 @@
 
 <div class="hide-in-mkdocs">
 
-## Язык
-
+## Версия документации
+- [Многоязычная веб-версия](https://tarantool.github.io/sdvg/ru/) (рекомендуется)
 - [English](README.md)
 - **Русский**
 

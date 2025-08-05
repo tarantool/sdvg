@@ -30,8 +30,8 @@ The documentation is available in 2 languages on:
 
 <div class="hide-in-mkdocs">
 
-## Language
-
+## Documentation version
+- [Multilingual web version](https://tarantool.github.io/sdvg/) (recommended)
 - **English**
 - [Русский](README.ru.md)
 

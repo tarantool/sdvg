@@ -1,4 +1,5 @@
 site_name: "SDVG"
+site_url: "https://tarantool.github.io/sdvg"
 repo_url: "https://github.com/tarantool/sdvg"
 repo_name: "tarantool/sdvg"
 
@@ -58,15 +59,12 @@ theme:
 
   features:
     - content.code.copy # copy button for code sections
-
     - navigation.footer
     - navigation.path
     - navigation.indexes
     - navigation.sections
     - navigation.expand
-
     - toc.follow
-
     - search.highlight
 
 extra:

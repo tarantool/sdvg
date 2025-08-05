@@ -24,3 +24,4 @@ test/performance:
 
 include ./build/package/Makefile
 include ./build/ci/Makefile
+include ./doc/common/Makefile
