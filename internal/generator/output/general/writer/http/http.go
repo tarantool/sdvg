@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	maxBodySize  = 1 << 20 // 1 Mb
 	retryWaitMin = 1 * time.Second
 	retryWaitMax = 10 * time.Minute
 )
@@ -71,6 +72,7 @@ func NewWriter(
 			return &bodyPayload{
 				ModelName:   model.Name,
 				ColumnNames: columnNames,
+				Rows:        make([][]any, 0, config.BatchSize),
 			}
 		},
 	}
@@ -222,21 +224,20 @@ func (w *Writer) handleBatch(batch []*models.DataRow) error {
 }
 
 func (w *Writer) buildRequest(dataRows []*models.DataRow) (*retryablehttp.Request, error) {
-	// Build a 2D slice of values extracted from dataRows.
-	// Each inner slice contains the values of a single row in the same order as the columns.
-	rows := make([][]any, len(dataRows))
-	for i, dataRow := range dataRows {
-		rows[i] = dataRow.Values
+	// Grab a payload with a ready slice and reset length to zero, keep capacity.
+	//
+	//nolint:forcetypeassert
+	payload := w.payloadPool.Get().(*bodyPayload)
+	payload.Rows = payload.Rows[:0]
+
+	for _, dataRow := range dataRows {
+		payload.Rows = append(payload.Rows, dataRow.Values)
 	}
 
 	// Prepare the data payload for the request template rendering.
 	// The payload includes the model name and structured row data.
 
 	buffer := new(bytes.Buffer)
-
-	//nolint:forcetypeassert
-	payload := w.payloadPool.Get().(*bodyPayload)
-	payload.Rows = rows
 
 	err := w.bodyTemplate.Execute(buffer, payload)
 	if err != nil {
@@ -279,13 +280,9 @@ func (w *Writer) sendRequest(req *retryablehttp.Request) error {
 
 		return errors.New(err.Error())
 	}
-
-	if resp == nil {
-		return errors.New("received nil response")
-	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
 		return errors.New(err.Error())
 	}
