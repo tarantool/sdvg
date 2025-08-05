@@ -1,6 +1,6 @@
 # Arguments
 
-ci_image = ghcr.io/tarantool/sdvg-ci:0.0.1
+ci_image = ghcr.io/hoodiehuuuuu/sdvg-ci:0.0.1
 
 # Targets
 
@@ -17,3 +17,17 @@ ci/build:
 
 ci/push:
 	docker push $(ci_image)
+
+bench/prepare:
+	pip install -r ./build/ci/requirements.txt
+
+old_bench ?= benchmark-master.txt
+new_bench ?= benchmark-pr.txt
+alert_threshold ?= 5
+aggregation_method ?= "mean"
+
+bench/compare:
+	python ./build/ci/compare_benchmarks.py \
+	  $(old_bench) $(new_bench) \
+	  --alert-threshold $(alert_threshold) \
+	  --aggregation $(aggregation_method)

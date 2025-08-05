@@ -17,55 +17,59 @@ concurrency:
   cancel-in-progress: "${{ github.ref_name != github.event.repository.default_branch }}"
 
 jobs:
-  create-semantic-tag:
-    runs-on: "ubuntu-latest"
-    outputs:
-      RELEASE_VERSION: "${{ steps.create-tag.outputs.VERSION }}"
-    steps:
-      - uses: "actions/checkout@v4"
+#  create-semantic-tag:
+#    runs-on: "ubuntu-latest"
+#    outputs:
+#      RELEASE_VERSION: "${{ steps.create-tag.outputs.VERSION }}"
+#    steps:
+#      - uses: "actions/checkout@v4"
+#
+#      - name: "Create semantic tag"
+#        id: "create-tag"
+#        run: |
+#          if [ "${{ github.ref_name == github.event.repository.default_branch }}" != "true" ]; then
+#            echo "Skipping tagging because it's not the default branch"
+#            exit 0
+#          fi
+#
+#          VERSION=$(echo "${{ github.event.head_commit.message }}" \
+#            | sed -nE 's/.*[Rr]elease ([0-9]+\.[0-9]+\.[0-9]+).*?/\1/p')
+#
+#          if [ -z "${VERSION}" ]; then
+#            echo "No semantic version found in commit message"
+#            exit 0
+#          fi
+#
+#          echo "Adding semantic tag ${VERSION}..."
+#          git tag "${VERSION}"
+#          git push --tags
+#          echo "VERSION=${VERSION}" >> "${GITHUB_OUTPUT}"
 
-      - name: "Create semantic tag"
-        id: "create-tag"
-        run: |
-          if [ "${{ github.ref_name == github.event.repository.default_branch }}" != "true" ]; then
-            echo "Skipping tagging because it's not the default branch"
-            exit 0
-          fi
+#  test:
+#    needs: ["create-semantic-tag"]
+#    uses: "./.github/workflows/test.yml"
 
-          VERSION=$(git log -1 --pretty=%B | sed -nE 's/.*[Rr]elease ([0-9]+\.[0-9]+\.[0-9]+).*?/\1/p')
+  performance:
+    uses: "./.github/workflows/performance.yml"
 
-          if [ -z "${VERSION}" ]; then
-            echo "No semantic version found in commit message"
-            exit 0
-          fi
-
-          echo "Adding semantic tag ${VERSION}..."
-          git tag "${VERSION}"
-          git push --tags
-          echo "VERSION=${VERSION}" >> "${GITHUB_OUTPUT}"
-
-  test:
-    needs: ["create-semantic-tag"]
-    uses: "./.github/workflows/test.yml"
-
-  build:
-    needs: ["test"]
-    uses: "./.github/workflows/build.yml"
-
-  release-latest:
-    if: "${{ github.ref_name == github.event.repository.default_branch }}"
-    needs: ["build"]
-    uses: "./.github/workflows/release.yml"
-    with:
-      release_name: "latest"
-
-  release-version:
-    if: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION != '' }}"
-    needs: ["create-semantic-tag", "build"]
-    uses: "./.github/workflows/release.yml"
-    with:
-      release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
-
-  deploy-docs:
-    needs: ["release-latest"]
-    uses: "./.github/workflows/doc.yml"
+#  build:
+#    needs: ["test"]
+#    uses: "./.github/workflows/build.yml"
+#
+#  release-latest:
+#    if: "${{ github.ref_name == github.event.repository.default_branch }}"
+#    needs: ["build"]
+#    uses: "./.github/workflows/release.yml"
+#    with:
+#      release_name: "latest"
+#
+#  release-version:
+#    if: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION != '' }}"
+#    needs: ["create-semantic-tag", "build"]
+#    uses: "./.github/workflows/release.yml"
+#    with:
+#      release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
+#
+#  deploy-docs:
+#    needs: ["release-latest"]
+#    uses: "./.github/workflows/doc.yml"

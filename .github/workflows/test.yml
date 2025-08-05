@@ -37,7 +37,7 @@ jobs:
       - name: "Run unit tests"
         run: "make test/unit"
 
-  ### COVER ###
+  ## COVER ###
 
   cover:
     runs-on: "ubuntu-latest"
@@ -56,14 +56,3 @@ jobs:
           file: "coverage.out"
           format: "golang"
 
-  ### PERFORMANCE ###
-
-  performance:
-    runs-on: "ubuntu-latest"
-    container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
-    steps:
-      - uses: "actions/checkout@v4"
-
-      - name: "Run benchmarks"
-        run: "make test/performance | tee performance.out"

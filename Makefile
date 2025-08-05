@@ -20,7 +20,7 @@ test/cover:
 	go tool cover -html=coverage.out -o coverage.html
 
 test/performance:
-	go test -run=^$$ -bench=. -cpu 4 ./...
+	go test -run=^$$ -bench=. -count=2 -cpu 4 ./...
 
 include ./build/package/Makefile
 include ./build/ci/Makefile
