@@ -2,10 +2,6 @@
 
 # Synthetic Data Values Generator (SDVG)
 
-The documentation is available in 2 languages on:
-- the [website](https://tarantool.github.io/sdvg/)
-- [offline in Markdown format](./doc/)
-
 </div>
 
 [![Release][release-badge]][release-url]
