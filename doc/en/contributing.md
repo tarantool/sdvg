@@ -33,10 +33,18 @@ To add a new section to the documentation, you must:
 
 1. Create a new `.md` file in the root of the [doc/en](../../doc/en) directory.
 2. Add the file name to the `nav` section in the [mkdocs.yml](../../mkdocs.yml) configuration file.
-3. Perform the same steps for other languages if they need to be supported.
+3. Perform the same steps in the corresponding directories for each language if you need to support them.
    Otherwise, the English version of the section will be displayed.
-4. Translate the section titles for other languages in the `plugins.i18n.languages.<language_code>.nav_translations`
-   section of [mkdocs.yml](../../mkdocs.yml).
+
+To add support for a new language, you need to:
+
+1. Create a directory in the root of the [doc](../../doc) directory. The directory name must match
+   the language code (e.g., ru, en, ...) that you want to support.
+2. Translate the content of all the sections that you want to support in the new language.
+   For everything to work correctly, the filenames of the translated documentation must match
+   the names in the `doc/en` directory. All untranslated files will be replaced with the English version.
+3. Add the new language to the `plugins.i18n.languages` section in the `mkdocs.yml` configuration file,
+   where the `locale` property must match the name of the directory for the corresponding language.
 
 To locally check the documentation site's layout, you need to:
 

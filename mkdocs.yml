@@ -66,8 +66,12 @@ extra:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.superfences:
+  - pymdownx.inlinehilite:
   - attr_list:
+  - codehilite:
   - toc:
       permalink: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify # for cyrillic
@@ -91,5 +95,3 @@ plugins:
           default: true
         - locale: "ru"
           name: "Русский"
-          nav_translations:
-            About: "О проекте"
