@@ -6,66 +6,59 @@ repo_name: "tarantool/sdvg"
 ### BUILD ###
 
 docs_dir: "doc"
+exclude_docs: |
+  build/*
 
 validation:
-  omitted_files: warn
-  absolute_links: warn
-  unrecognized_links: warn
-  anchors: warn
+  omitted_files: "warn"
+  absolute_links: "warn"
+  unrecognized_links: "warn"
+  anchors: "warn"
 
 nav:
-  - index.md
-  - usage.md
-  - contributing.md
-  - overview.md
-  - changelog.md
-  - license.md
+  - "index.md"
+  - "usage.md"
+  - "contributing.md"
+  - "overview.md"
+  - "changelog.md"
+  - "license.md"
 
 extra_css:
-  - common/extra.css
+  - "assets/stylesheets/sdvg.css"
 
 ### APPEARANCE ###
 
 theme:
   name: "material"
-  language: "en"
-
-  logo: "https://raw.githubusercontent.com/tarantool/sdvg/refs/heads/master/asset/favicon.png"
-  favicon: "https://raw.githubusercontent.com/tarantool/sdvg/refs/heads/master/asset/favicon.png"
+  logo: "assets/images/favicon.png"
+  favicon: "assets/images/favicon.png"
   icon:
     repo: "fontawesome/brands/github"
-
   palette:
-
-    # automatic theme mode
     - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/brightness-auto
-        name: Change theme mode
-
-    # dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      toggle:
-        icon: material/brightness-4
-        name: Switch theme
-
-    # light mode
+        name: "Switch to light mode"
+        icon: "material/brightness-auto"
     - media: "(prefers-color-scheme: light)"
-      scheme: default
+      scheme: "default"
       toggle:
-        icon: material/brightness-7
-        name: Switch theme
+        name: "Switch to dark mode"
+        icon: "material/brightness-7"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: "slate"
+      toggle:
+        name: "Switch to system preference"
+        icon: "material/brightness-4"
 
   features:
-    - content.code.copy # copy button for code sections
-    - navigation.footer
-    - navigation.path
-    - navigation.indexes
-    - navigation.sections
-    - navigation.expand
-    - toc.follow
-    - search.highlight
+    - "content.code.copy" # copy button for code sections
+    - "navigation.footer"
+    - "navigation.path"
+    - "navigation.indexes"
+    - "navigation.sections"
+    - "navigation.expand"
+    - "toc.follow"
+    - "search.highlight"
 
 extra:
   generator: false # disable footer note 'Made with Material for MkDocs'
@@ -79,13 +72,13 @@ markdown_extensions:
       permalink: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify # for cyrillic
         kwds:
-          case: lower
+          case: "lower"
 
 plugins:
   - include-markdown:
   - mkdocs-simple-hooks:
       hooks:
-        on_page_markdown: "doc.common.hooks:replace_specific_links"
+        on_page_markdown: "doc.build.hooks:replace_specific_links"
   - search:
   - i18n:
       docs_structure: "folder"
@@ -93,12 +86,10 @@ plugins:
       reconfigure_search: true
       reconfigure_material: true
       languages:
-        - locale: en
-          name: English
+        - locale: "en"
+          name: "English"
           default: true
-          build: true
-        - locale: ru
-          name: Russian
-          build: true
+        - locale: "ru"
+          name: "Русский"
           nav_translations:
-            About: О проекте
+            About: "О проекте"

@@ -69,4 +69,4 @@ jobs:
 
   deploy-docs:
     needs: ["release-latest"]
-    uses: "./.github/workflows/deploy-docs.yml"
+    uses: "./.github/workflows/doc.yml"
