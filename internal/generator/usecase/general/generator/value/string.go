@@ -486,6 +486,9 @@ func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, 
 //nolint:cyclop
 func (g *StringGenerator) ValuesCount() float64 {
 	if g.Template != "" {
+		// Using `distinct` or `ordered` parameters with templates
+		// is not possible, we cannot guarantee that these parameters
+		// will be met, so we just need to return something other than 0.
 		return 1.0
 	}
 
