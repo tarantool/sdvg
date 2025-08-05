@@ -66,3 +66,7 @@ jobs:
     uses: "./.github/workflows/release.yml"
     with:
       release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
+
+  deploy-docs:
+    needs: ["release-latest"]
+    uses: "./.github/workflows/deploy-docs.yml"
