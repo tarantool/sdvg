@@ -361,12 +361,21 @@ func CtxClosed(ctx context.Context) bool {
 }
 
 func ExtractValuesFromTemplate(template string) []string {
-	re := regexp.MustCompile(`{{.*?\.([^\s|}]+).*?}}`)
-	matches := re.FindAllStringSubmatch(template, -1)
+	// regexp for templates like {{ .name }}
+	reField := regexp.MustCompile(`{{\s*(?:\w+\s+)?\.([^\s"|}]+).*?}}`)
+	matchesField := reField.FindAllStringSubmatch(template, -1)
 
-	values := make([]string, 0, len(matches))
+	// regexp for templates like {{ index . "name-with-specific-symbols" }}
+	reMapKey := regexp.MustCompile(`{{\s*index\s+\.\s+"([^"]+)".*?}}`)
+	matchesMapKeys := reMapKey.FindAllStringSubmatch(template, -1)
 
-	for _, match := range matches {
+	values := make([]string, 0, len(matchesField)+len(matchesMapKeys))
+
+	for _, match := range matchesField {
+		values = append(values, match[1])
+	}
+
+	for _, match := range matchesMapKeys {
 		values = append(values, match[1])
 	}
 

@@ -718,8 +718,23 @@ func TestExtractValuesFromTemplate(t *testing.T) {
 		},
 		{
 			name:     "Template with functions",
-			template: "{{ upper .foo | lower }}@{{ .boo }}",
-			expected: []string{"foo", "boo"},
+			template: "{{ upper .foo | lower }}",
+			expected: []string{"foo"},
+		},
+		{
+			name:     "Template with index function",
+			template: `{{ index . foo }}.{{ index . "boo" }}`,
+			expected: []string{"boo"},
+		},
+		{
+			name:     "Mixed template",
+			template: `{{ index . "foo" }}.{{ lower .boo }}|{{.coo}}`,
+			expected: []string{"boo", "coo", "foo"},
+		},
+		{
+			name:     "Field name in quotation marks",
+			template: `{{ ."foo" }}`,
+			expected: []string{},
 		},
 		{
 			name:     "Invalid template",

@@ -247,8 +247,20 @@ all its features and available functions in this [documentation](https://pkg.go.
 
 Accessing Data:
 
-In a template, data is accessed using `.`(the object or value passed to the template)
+In a template, data is accessed using `.` (the object or value passed to the template)
 and the field name, for example: `{{ .var }}`.
+
+> **Important**: only the following characters are allowed in variable names:
+>
+> - letters from any alphabet (Unicode category L*).
+> - numbers (Unicode category Nd), but not as the first character.
+> - the underscore character `_`.
+>
+> Any other characters — spaces, periods, hyphens, quotation marks, punctuation marks,
+  etc. — cannot be used in the name itself.
+>
+> If you need to access a variable whose name is considered invalid,
+  refer to it using the `index` function, specifying the variable name in quotation marks, for example, `{{ index . "field-with-dash" }}`.
 
 Function calls:
 
