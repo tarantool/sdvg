@@ -6,14 +6,13 @@
     margin-left: 0 !important;
 }
 
-:root > * {
-    --md-code-bg-color: #f5f5f5;
-    --md-code-fg-color: #e91e63;
+[data-md-color-scheme="slate"] {
+    --md-code-fg-color: #ffffff;
+    --md-code-bg-color: #333542;
 }
 
-[data-md-color-scheme="slate"] {
-    --md-code-bg-color: #424242;
-    --md-code-fg-color: #ffa7c4;
+[data-md-color-scheme="default"] {
+    --md-code-bg-color: #ECEFF1;
 }
 
 .md-typeset code {
