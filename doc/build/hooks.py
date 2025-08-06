@@ -1,5 +1,6 @@
 import re
 
+
 def replace_specific_links(markdown, *, page, config, files, **kwargs):
     # Replace link from /CHANGELOG.md to page with changelog
     markdown = re.sub(
@@ -15,17 +16,17 @@ def replace_specific_links(markdown, *, page, config, files, **kwargs):
         markdown
     )
 
-    # Replace links for assets
+    # Replace links for images
     markdown = re.sub(
-        r'\[([^]]+)](\(|:\s*)(\.\./){2}(asset/.+)(\)|\s*)',
-        rf'[\1]\2https://raw.githubusercontent.com/{config.repo_name}/refs/heads/master/\4\5',
+        r'\[([^]]+)](\(|:\s*)(?:\.\./){2}asset/(.+\.(?:png|jpg))(\)|\s*)',
+        rf'[\1]\2assets/images/\3\4',
         markdown
     )
 
     # Replace links for code
     markdown = re.sub(
-        r'\[([^]]+)](\(|:\s*)(\.\./){2}(.+)(\)|\s*)',
-        rf'[\1]\2{config.repo_url}/tree/master/\4\5',
+        r'\[([^]]+)](\(|:\s*)(?:\.\./){2}(?!asset/)(.+)(\)|\s*)',
+        rf'[\1]\2{config.repo_url}/tree/master/\3\4',
         markdown
     )
 

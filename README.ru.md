@@ -2,7 +2,6 @@
 
 # Synthetic Data Values Generator (SDVG)
 
-
 </div>
 
 [![Release][release-badge]][release-url]
@@ -12,22 +11,23 @@
 [![Language][language-badge]][language-url]
 [![License][license-badge]][license-url]
 
-[release-badge]: https://img.shields.io/github/v/release/tarantool/sdvg
+[release-badge]: https://badgen.net/github/release/tarantool/sdvg/stable?color=pink
 [release-url]: https://github.com/tarantool/sdvg/releases/latest/
-[pre-release-badge]: https://img.shields.io/badge/pre--release-latest-orange
+[pre-release-badge]: https://badgen.net/static/pre-release/latest/orange?color=purple
 [pre-release-url]: https://github.com/tarantool/sdvg/releases/tag/latest/
-[actions-badge]: https://img.shields.io/github/check-runs/tarantool/sdvg/master
+[actions-badge]: https://badgen.net/github/checks/tarantool/sdvg
 [actions-url]: https://github.com/tarantool/sdvg/actions
-[test-coverage-badge]: https://img.shields.io/coverallsCoverage/github/tarantool/sdvg?branch=master
+[test-coverage-badge]: https://badgen.net/coveralls/c/github/tarantool/sdvg
 [test-coverage-url]: https://coveralls.io/github/tarantool/sdvg?branch=master
-[language-badge]: https://img.shields.io/github/languages/top/tarantool/sdvg
+[language-badge]: https://badgen.net/static/language/go/blue
 [language-url]: https://github.com/tarantool/sdvg/search?l=go
-[license-badge]: https://img.shields.io/github/license/tarantool/sdvg
+[license-badge]: https://badgen.net/github/license/tarantool/sdvg?color=cyan
 [license-url]: ./LICENSE
 
 <div class="hide-in-mkdocs">
 
 ## Версия документации
+
 - [Многоязычная веб-версия](https://tarantool.github.io/sdvg/ru/) (рекомендуется)
 - [English](README.md)
 - **Русский**
@@ -189,7 +189,7 @@ sdvg generate -h
 
 Больше информации можно найти в [руководстве по эксплуатации](./doc/ru/usage.md).
 
-## Документация
+## Следующие шаги
 
 - [Руководство по эксплуатации](./doc/ru/usage.md)
 - [Руководство для разработчиков](./doc/ru/contributing.md)
