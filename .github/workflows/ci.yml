@@ -68,5 +68,5 @@ jobs:
       release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
 
   deploy-docs:
-    needs: ["release-latest"]
+#   needs: ["release-latest"]
     uses: "./.github/workflows/doc.yml"
