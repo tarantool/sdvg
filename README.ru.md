@@ -15,9 +15,9 @@
 [release-url]: https://github.com/tarantool/sdvg/releases/latest/
 [pre-release-badge]: https://badgen.net/static/pre-release/latest/orange?color=purple
 [pre-release-url]: https://github.com/tarantool/sdvg/releases/tag/latest/
-[actions-badge]: https://badgen.net/github/checks/tarantool/sdvg
+[actions-badge]: https://badgen.net/github/checks/tarantool/sdvg/master
 [actions-url]: https://github.com/tarantool/sdvg/actions
-[test-coverage-badge]: https://badgen.net/coveralls/c/github/tarantool/sdvg
+[test-coverage-badge]: https://badgen.net/coveralls/c/github/tarantool/sdvg/master
 [test-coverage-url]: https://coveralls.io/github/tarantool/sdvg?branch=master
 [language-badge]: https://badgen.net/static/language/go/blue
 [language-url]: https://github.com/tarantool/sdvg/search?l=go
