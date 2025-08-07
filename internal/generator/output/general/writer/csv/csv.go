@@ -33,6 +33,7 @@ type Writer struct {
 	ctx context.Context //nolint:containedctx
 
 	model              *models.Model
+	columnsToDiscard   map[string]struct{}
 	config             *models.CSVConfig
 	outputPath         string
 	continueGeneration bool
@@ -58,6 +59,7 @@ func NewWriter(
 	ctx context.Context,
 	model *models.Model,
 	config *models.CSVConfig,
+	columnsToDiscard map[string]struct{},
 	outputPath string,
 	continueGeneration bool,
 	writtenRowsChan chan<- uint64,
@@ -65,6 +67,7 @@ func NewWriter(
 	return &Writer{
 		ctx:                ctx,
 		model:              model,
+		columnsToDiscard:   columnsToDiscard,
 		config:             config,
 		outputPath:         outputPath,
 		continueGeneration: continueGeneration,
@@ -373,20 +376,14 @@ func (w *Writer) replaceFile(fileName string) error {
 }
 
 func (w *Writer) getHeaders() []string {
-	skip := make(map[string]struct{})
+	headers := make([]string, 0, len(w.model.Columns)-len(w.columnsToDiscard))
 
-	for _, partitionColumn := range w.model.PartitionColumns {
-		if !partitionColumn.WriteToOutput {
-			skip[partitionColumn.Name] = struct{}{}
+	for _, column := range w.model.Columns {
+		if _, exists := w.columnsToDiscard[column.Name]; exists {
+			continue
 		}
-	}
 
-	headers := make([]string, 0, len(w.model.Columns)-len(skip))
-
-	for _, col := range w.model.Columns {
-		if _, exists := skip[col.Name]; !exists {
-			headers = append(headers, col.Name)
-		}
+		headers = append(headers, column.Name)
 	}
 
 	return headers
