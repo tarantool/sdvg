@@ -55,7 +55,7 @@ func TestHandleRowsBatch(t *testing.T) {
 	"meta": {
 		"rows_count": {{ len .Rows }}
 	},
-	"rows": {{ json .Rows }}
+	"rows": {{ rowsJson .ColumnNames .Rows }}
 }`,
 			model: &models.Model{
 				Name:      "expectedModel",

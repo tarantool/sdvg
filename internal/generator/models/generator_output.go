@@ -14,7 +14,7 @@ import (
 const (
 	DefaultOutputDir            = "output"
 	DefaultOutputType           = "csv"
-	defaultFormatTemplate       = `{ "table_name": "{{ .ModelName }}", "rows": {{ json .Rows }} }`
+	defaultFormatTemplate       = `{ "table_name": "{{ .ModelName }}", "rows": {{ rowsJson .ColumnNames .Rows }} }`
 	tcsTimeoutHeader            = "x-tcs-timeout_ms"
 	ParquetDateTimeMillisFormat = "millis"
 	ParquetDateTimeMicrosFormat = "micros"
