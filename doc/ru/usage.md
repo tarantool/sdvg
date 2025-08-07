@@ -104,7 +104,7 @@ open_ai:
 - `model_dir`: Директория для записи сгенерированных данных конкретной модели относительно `output_dir`.
   По умолчанию название модели.
 - `columns`: Список столбцов модели данных, описанных структурой `models[*].columns`.
-- `partition_columns`: Список столбцов, участвующих в партиционировании данных. Поддерживается только для `parquet`.
+- `partition_columns`: Список столбцов, участвующих в партиционировании данных. Поддерживается для `parquet` и `csv`.
 
 Структура `models[*].partition_columns` описывает как столбец участвует в партиционировании данных:
 
@@ -351,6 +351,13 @@ models:
         type: uuid
       - name: session_id
         type: string
+      - name: last_seen_at
+        type: datetime
+    partition_columns:
+      - name: id
+        write_to_output: false
+      - name: session_id
+        write_to_output: false
 ```
 
 Пример конфигурации для генерации parquet файлов:
@@ -374,6 +381,9 @@ models:
         parquet:
           encoding: RLE_DICTIONARY
         distinct_percentage: 1
+    partition_columns:
+      - name: id
+        write_to_output: true
 ```
 
 Пример конфигурации для отправки сгенерированных данных по http:

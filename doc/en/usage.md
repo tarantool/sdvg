@@ -100,7 +100,7 @@ The `models[*]` structure describes a data generation model and includes:
 - `generate_to`: Ending row number for generation. Default is `rows_count`.
 - `model_dir`: Directory to store data for this model, relative to `output_dir`. Defaults to model name.
 - `columns`: List of columns described by the `models[*].columns` structure.
-- `partition_columns`: Columns used for data partitioning. Supported only for `parquet`.
+- `partition_columns`: Columns used for data partitioning. Supported for `parquet` and `csv`.
 
 The `models[*].partition_columns` structure specifies data partitioning columns:
 
@@ -345,6 +345,13 @@ models:
         type: uuid
       - name: session_id
         type: string
+      - name: last_seen_at
+        type: datetime
+    partition_columns:
+      - name: id
+        write_to_output: false
+      - name: session_id
+        write_to_output: false
 ```
 
 Example configuration for generating Parquet files:
@@ -368,6 +375,9 @@ models:
         parquet:
           encoding: RLE_DICTIONARY
         distinct_percentage: 1
+    partition_columns:
+      - name: id
+        write_to_output: true
 ```
 
 Example configuration for sending generated data via HTTP:
