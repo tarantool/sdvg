@@ -460,10 +460,11 @@ func TestGetModelSchema(t *testing.T) {
 		require.NotEqual(t, "", tc.model.Name)
 
 		writer := &Writer{
-			model:      tc.model,
-			config:     tc.cfg,
-			fs:         fsMock,
-			outputPath: "./",
+			model:            tc.model,
+			columnsToDiscard: getColumnsToDiscard(tc.model.PartitionColumns),
+			config:           tc.cfg,
+			fs:               fsMock,
+			outputPath:       "./",
 		}
 
 		modelSchemaPointer, writerProperties, err := writer.generateModelSchema()
@@ -616,7 +617,15 @@ func TestWriteRow(t *testing.T) {
 		// WHEN
 
 		fsMock := newFileSystemMock()
-		parquetWriter := NewWriter(tc.model, parquetConfig, fsMock, "./", false, nil)
+		parquetWriter := NewWriter(
+			tc.model,
+			parquetConfig,
+			getColumnsToDiscard(tc.model.PartitionColumns),
+			fsMock,
+			"./",
+			false,
+			nil,
+		)
 
 		err := parquetWriter.Init()
 		require.NoError(t, err)
@@ -825,7 +834,15 @@ func TestWriteToCorrectFiles(t *testing.T) {
 		fsMock := newFileSystemMock()
 
 		write := func(from, to int, continueGeneration bool) {
-			writer := NewWriter(model, config, fsMock, dir, continueGeneration, nil)
+			writer := NewWriter(
+				model,
+				config,
+				getColumnsToDiscard(model.PartitionColumns),
+				fsMock,
+				dir,
+				continueGeneration,
+				nil,
+			)
 			require.NoError(t, writer.Init())
 
 			for i := from; i < to; i++ {
@@ -913,4 +930,16 @@ func getExpected(rows []*models.DataRow, rowsPerFile uint64, writersCount int) (
 	}
 
 	return expectedFiles, expectedData
+}
+
+func getColumnsToDiscard(partitionColumns []*models.PartitionColumn) map[string]struct{} {
+	columnsToDiscard := make(map[string]struct{})
+
+	for _, column := range partitionColumns {
+		if !column.WriteToOutput {
+			columnsToDiscard[column.Name] = struct{}{}
+		}
+	}
+
+	return columnsToDiscard
 }

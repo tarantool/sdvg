@@ -130,7 +130,15 @@ func TestWriteRow(t *testing.T) {
 
 		csvConfig.WithoutHeaders = tc.withoutHeaders
 
-		csvWriter := NewWriter(context.Background(), tc.model, csvConfig, "./", false, nil)
+		csvWriter := NewWriter(
+			context.Background(),
+			tc.model,
+			csvConfig,
+			getColumnsToDiscard(tc.model.PartitionColumns),
+			"./",
+			false,
+			nil,
+		)
 
 		err := csvWriter.Init()
 		require.NoError(t, err)
@@ -307,7 +315,15 @@ func TestWriteToCorrectFiles(t *testing.T) {
 		}
 
 		write := func(from, to int, continueGeneration bool) {
-			writer := NewWriter(context.Background(), model, config, dir, continueGeneration, nil)
+			writer := NewWriter(
+				context.Background(),
+				model,
+				config,
+				getColumnsToDiscard(model.PartitionColumns),
+				dir,
+				continueGeneration,
+				nil,
+			)
 			require.NoError(t, writer.Init())
 
 			for i := from; i < to; i++ {
@@ -369,4 +385,16 @@ func getFileNumber(rows, rowsPerFile int) int {
 	}
 
 	return fileNumber
+}
+
+func getColumnsToDiscard(partitionColumns []*models.PartitionColumn) map[string]struct{} {
+	columnsToDiscard := make(map[string]struct{})
+
+	for _, column := range partitionColumns {
+		if !column.WriteToOutput {
+			columnsToDiscard[column.Name] = struct{}{}
+		}
+	}
+
+	return columnsToDiscard
 }

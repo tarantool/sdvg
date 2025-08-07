@@ -58,6 +58,7 @@ var _ writer.Writer = (*Writer)(nil)
 // Writer type is implementation of Writer to parquet file.
 type Writer struct {
 	model              *models.Model
+	columnsToDiscard   map[string]struct{}
 	config             *models.ParquetConfig
 	outputPath         string
 	continueGeneration bool
@@ -91,6 +92,7 @@ type FileSystem interface {
 func NewWriter(
 	model *models.Model,
 	config *models.ParquetConfig,
+	columnsToDiscard map[string]struct{},
 	fs FileSystem,
 	outputPath string,
 	continueGeneration bool,
@@ -98,6 +100,7 @@ func NewWriter(
 ) *Writer {
 	return &Writer{
 		model:              model,
+		columnsToDiscard:   columnsToDiscard,
 		config:             config,
 		outputPath:         outputPath,
 		continueGeneration: continueGeneration,
@@ -122,14 +125,9 @@ func (w *Writer) generateModelSchema() (*arrow.Schema, []parquet.WriterProperty,
 
 	arrowFields := make([]arrow.Field, 0, len(w.model.Columns))
 
-	partitionColumnsByName := map[string]*models.PartitionColumn{}
-	for _, column := range w.model.PartitionColumns {
-		partitionColumnsByName[column.Name] = column
-	}
-
 	for _, column := range w.model.Columns {
-		colSettings, ok := partitionColumnsByName[column.Name]
-		if ok && !colSettings.WriteToOutput { // filter partition columns in schema
+		// filter partition columns in schema
+		if _, exists := w.columnsToDiscard[column.Name]; exists {
 			continue
 		}
 

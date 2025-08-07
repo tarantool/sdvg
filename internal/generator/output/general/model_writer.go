@@ -33,7 +33,7 @@ type ModelWriter struct {
 	basePath           string
 	continueGeneration bool
 
-	numberColumnsToDiscard  int
+	columnsToDiscard        map[string]struct{}
 	partitionColumnsIndexes []int
 	orderedColumnNames      []string
 
@@ -61,12 +61,12 @@ func newModelWriter(
 		orderedColumnNames = append(orderedColumnNames, column.Name)
 	}
 
-	numberColumnsToDiscard := 0
+	columnsToDiscard := make(map[string]struct{})
 	partitionOrderedColumnNames := make([]string, 0, len(model.PartitionColumns))
 
 	for _, column := range model.PartitionColumns {
 		if !column.WriteToOutput {
-			numberColumnsToDiscard++
+			columnsToDiscard[column.Name] = struct{}{}
 		}
 
 		partitionOrderedColumnNames = append(partitionOrderedColumnNames, column.Name)
@@ -97,7 +97,7 @@ func newModelWriter(
 		config:                  config,
 		basePath:                basePath,
 		continueGeneration:      continueGeneration,
-		numberColumnsToDiscard:  numberColumnsToDiscard,
+		columnsToDiscard:        columnsToDiscard,
 		partitionColumnsIndexes: partitionColumnsIndexes,
 		orderedColumnNames:      orderedColumnNames,
 		checkpointTicker:        ticker,
@@ -192,7 +192,7 @@ func (w *ModelWriter) WriteRows(ctx context.Context, rows []*models.DataRow) err
 
 		// discard not writeable columns
 		sendRow := &models.DataRow{
-			Values: row.Values[:len(row.Values)-w.numberColumnsToDiscard],
+			Values: row.Values[:len(row.Values)-len(w.columnsToDiscard)],
 		}
 
 		if err := dataWriter.WriteRow(sendRow); err != nil {
@@ -237,19 +237,30 @@ func (w *ModelWriter) newWriter(ctx context.Context, outPath string) (writer.Wri
 	var dataWriter writer.Writer
 
 	switch w.config.Type {
+	case "devnull":
+		dataWriter = devnull.NewWriter(
+			w.model,
+			w.config.DevNullParams,
+		)
 	case "csv":
 		dataWriter = csv.NewWriter(
 			ctx,
 			w.model,
 			w.config.CSVParams,
+			w.columnsToDiscard,
 			outPath,
 			w.continueGeneration,
 			w.writtenRowsChan,
 		)
-	case "devnull":
-		dataWriter = devnull.NewWriter(
+	case "parquet":
+		dataWriter = parquet.NewWriter(
 			w.model,
-			w.config.DevNullParams,
+			w.config.ParquetParams,
+			w.columnsToDiscard,
+			parquet.NewFileSystem(),
+			outPath,
+			w.continueGeneration,
+			w.writtenRowsChan,
 		)
 	case "http":
 		dataWriter = http.NewWriter(
@@ -263,15 +274,6 @@ func (w *ModelWriter) newWriter(ctx context.Context, outPath string) (writer.Wri
 			ctx,
 			w.model,
 			w.config.TCSParams,
-			w.writtenRowsChan,
-		)
-	case "parquet":
-		dataWriter = parquet.NewWriter(
-			w.model,
-			w.config.ParquetParams,
-			parquet.NewFileSystem(),
-			outPath,
-			w.continueGeneration,
 			w.writtenRowsChan,
 		)
 	default:
