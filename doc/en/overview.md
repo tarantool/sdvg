@@ -1,11 +1,15 @@
 # Goals and Standards Compliance
 
+<div class="hide-in-mkdocs">
+
 ## Table of Contents
 
 - [Tool Benefits](#tool-benefits)
 - [User Stories](#user-stories)
 - [VK Tech Values](#vk-tech-values)
 - [CNCF Standards Compliance](#cncf-standards-compliance)
+
+</div>
 
 ## Tool Benefits
 

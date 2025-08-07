@@ -1,0 +1,23 @@
+.hide-in-mkdocs {
+    display: none;
+}
+
+.md-header__title {
+    margin-left: 0 !important;
+}
+
+[data-md-color-scheme="slate"] {
+    --md-code-fg-color: #ffffff;
+    --md-code-bg-color: #333542;
+}
+
+[data-md-color-scheme="default"] {
+    --md-code-bg-color: #ECEFF1;
+}
+
+.md-typeset code {
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}

@@ -1,0 +1,97 @@
+site_name: "SDVG"
+site_url: "https://tarantool.github.io/sdvg"
+repo_url: "https://github.com/tarantool/sdvg"
+repo_name: "tarantool/sdvg"
+
+### BUILD ###
+
+docs_dir: "doc"
+exclude_docs: |
+  build/*
+
+validation:
+  omitted_files: "warn"
+  absolute_links: "warn"
+  unrecognized_links: "warn"
+  anchors: "warn"
+
+nav:
+  - "index.md"
+  - "usage.md"
+  - "contributing.md"
+  - "overview.md"
+  - "changelog.md"
+  - "license.md"
+
+extra_css:
+  - "assets/stylesheets/sdvg.css"
+
+### APPEARANCE ###
+
+theme:
+  name: "material"
+  logo: "assets/images/favicon.png"
+  favicon: "assets/images/favicon.png"
+  icon:
+    repo: "fontawesome/brands/github"
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        name: "Switch to light mode"
+        icon: "material/brightness-auto"
+    - media: "(prefers-color-scheme: light)"
+      scheme: "default"
+      toggle:
+        name: "Switch to dark mode"
+        icon: "material/brightness-7"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: "slate"
+      toggle:
+        name: "Switch to system preference"
+        icon: "material/brightness-4"
+
+  features:
+    - "content.code.copy" # copy button for code sections
+    - "navigation.footer"
+    - "navigation.path"
+    - "navigation.indexes"
+    - "navigation.sections"
+    - "navigation.expand"
+    - "toc.follow"
+    - "search.highlight"
+
+extra:
+  generator: false # disable footer note 'Made with Material for MkDocs'
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences:
+  - pymdownx.inlinehilite:
+  - attr_list:
+  - codehilite:
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify # for cyrillic
+        kwds:
+          case: "lower"
+
+plugins:
+  - include-markdown:
+  - mkdocs-simple-hooks:
+      hooks:
+        on_page_markdown: "doc.build.hooks:replace_specific_links"
+  - search:
+  - i18n:
+      docs_structure: "folder"
+      fallback_to_default: true
+      reconfigure_search: true
+      reconfigure_material: true
+      languages:
+        - locale: "en"
+          name: "English"
+          default: true
+        - locale: "ru"
+          name: "Русский"

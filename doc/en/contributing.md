@@ -24,6 +24,34 @@ To calculate code coverage, run `make test/cover`.
 To build the generator for your current OS, run `make build`.
 The resulting binaries will be in the `build/out` directory.
 
+## Documentation
+
+To edit the documentation, you need to make changes for each supported language
+within its corresponding directory in the [doc](../../doc) directory.
+
+To add a new section to the documentation, you must:
+
+1. Create a new `.md` file in the root of the [doc/en](../../doc/en) directory.
+2. Add the file name to the `nav` section in the [mkdocs.yml](../../mkdocs.yml) configuration file.
+3. Perform the same steps in the corresponding directories for each language if you need to support them.
+   Otherwise, the English version of the section will be displayed.
+
+To add support for a new language, you need to:
+
+1. Create a directory in the root of the [doc](../../doc) directory. The directory name must match
+   the language code (e.g., ru, en, ...) that you want to support.
+2. Translate the content of all the sections that you want to support in the new language.
+   For everything to work correctly, the filenames of the translated documentation must match
+   the names in the `doc/en` directory. All untranslated files will be replaced with the English version.
+3. Add the new language to the `plugins.i18n.languages` section in the `mkdocs.yml` configuration file,
+   where the `locale` property must match the name of the directory for the corresponding language.
+
+To locally check the documentation site's layout, you need to:
+
+1. Install the Python dependencies: `make doc/prepare`.
+2. Run the local site hosting with the command `make doc/serve`.
+   The site will be available at [127.0.0.1:8000](http://127.0.0.1:8000).
+
 ## Release
 
 To release a new version:
