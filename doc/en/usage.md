@@ -158,8 +158,11 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 - `min_length`: Minimum string length. Default is `1`.
 - `max_length`: Maximum string length. Default is `32`.
 - `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
-- `template`: Template for string generation. Symbol `A` - any uppercase letter, symbol `a` - any lowercase letter,
-  symbol `0` - any digit, symbol `#` - any character. Other characters remain as-is.
+- `template`: Template for string generation. Allows you to use the values of any columns of the generated model.
+  Information about the functions available in template strings is described at the end of this section.
+  Cannot coexist with `ordered`, `distinct_percentage` and `distinct_count`.
+- `pattern`: Pattern for string generation. The `A` symbol is any capital letter, the `a` symbol is any small letter,
+  symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
 - `locale`: Locale for generated strings. Supported values: `ru`, `en`. Default is `en`.
 - `without_large_letters`: Flag indicating if uppercase letters should be excluded from the string.
 - `without_small_letters`: Flag indicating if lowercase letters should be excluded from the string.
@@ -194,15 +197,12 @@ Structure `output.params` for format `http`:
 - `workers_count`: Number of threads for writing data. Default is `1`. *Experimental field.*
 - `headers`: HTTP request headers specified as a dictionary. Default is none.
 - `format_template`: Template-based format for sending data, configured using Golang templates.  
-  Available for use in `format_template`:
-
-  - fields:
+  There are 2 fields available for use in `format_template`:
     * `ModelName` - name of the model.
     * `Rows` - array of records, where each element is a dictionary representing a data row.
       Dictionary keys correspond to column names, and values correspond to data in those columns.
-  - functions:
-    * `len` - returns the length of the given element.
-    * `json` - converts the given element to a JSON string.
+
+  You can read about the available functions and the use of template strings at the end of this section.
 
   Example value for the `format_template` field:
 
@@ -239,6 +239,45 @@ Structure of `output.params` for `tcs` format:
 
 Similar to the structure for the `http` format,
 except that the `format_template` field is immutable and always set to its default value.
+
+Using Template Strings:
+
+Template strings are implemented using the standard golang library, you can read about
+all its features and available functions in this [documentation](https://pkg.go.dev/text/template).
+
+Accessing Data:
+
+In a template, data is accessed using `.` (the object or value passed to the template)
+and the field name, for example: `{{ .var }}`.
+
+> **Important**: only the following characters are allowed in variable names:
+>
+> - letters from any alphabet (Unicode category L*).
+> - numbers (Unicode category Nd), but not as the first character.
+> - the underscore character `_`.
+>
+> Any other characters — spaces, periods, hyphens, quotation marks, punctuation marks,
+  etc. — cannot be used in the name itself.
+>
+> If you need to access a variable whose name is considered invalid,
+  refer to it using the `index` function, specifying the variable name in quotation marks, for example, `{{ index . "field-with-dash" }}`.
+
+Function calls:
+
+- direct call: `{{ upper .name }}`.
+- using pipe: `{{ .name | upper }}`.
+
+In addition to standard functions, the project provides `4` custom functions:
+
+- `upper`: converts the string to upper case.
+- `lower`: converts the string to lower case.
+- `len`: returns the length of the element.
+- `json`: converts the element to a JSON string.
+
+Usage restrictions:
+
+The `lower`, and `upper` functions are available only in the `template` field of the `string` data type.
+The `len` and `json` functions are available only in the `format_template` field of the output parameters.
 
 #### Examples of data generation configuration
 
@@ -305,9 +344,13 @@ models:
       - name: passport
         type: string
         type_params:
-          template: AA 00 000 000
+          pattern: AA 00 000 000
         distinct_percentage: 1
         ordered: true
+      - name: email
+        type: string
+        type_params:
+          template: "{{ .first_name_en | lower }}.{{ .id }}@example.com"
       - name: rating
         type: float
         type_params:

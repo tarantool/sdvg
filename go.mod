@@ -11,6 +11,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/manifoldco/promptui v0.9.0
 	github.com/moby/term v0.5.2
+	github.com/otaviokr/topological-sort v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/sashabaranov/go-openai v1.36.1
 	github.com/spf13/afero v1.12.0

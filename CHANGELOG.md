@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [latest](https://github.com/tarantool/sdvg/compare/0.0.1..master)
 
+### Changed
+
+- The `template` field in the `string` data type is now used to generate template strings 
+ with the ability to use the values of any columns of the generated model.
+
+### Breaking changes
+
+- Using `template` field to specify a string pattern like `Aa0#` is no longer supported,
+  `pattern` should be used instead.
+
 ## [0.0.1](https://github.com/tarantool/sdvg/compare/36d0930..0.0.1) - 2025-07-21
 
 ### Added
