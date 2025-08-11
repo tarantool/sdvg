@@ -13,6 +13,8 @@ import (
 	"github.com/tarantool/sdvg/internal/generator/cli/utils"
 )
 
+var ErrPromptFailed = errors.New("prompt failed")
+
 // Confirm asks user a yes/no question. Returns true for “yes”.
 type Confirm func(ctx context.Context, question string) (bool, error)
 
@@ -53,7 +55,7 @@ func BuildConfirmTTY(in io.Reader, out io.Writer) func(ctx context.Context, ques
 		}
 
 		if err != nil {
-			return false, errors.WithMessage(err, "confirm prompt failed")
+			return false, fmt.Errorf("%w: %v", ErrPromptFailed, err)
 		}
 
 		return strings.Contains("Yy", input), nil

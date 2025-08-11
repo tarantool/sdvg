@@ -41,9 +41,83 @@ func (_m *Renderer) InputMenu(ctx context.Context, title string, validateFunc fu
 	return r0, r1
 }
 
+// IsTerminal provides a mock function with no fields
+func (_m *Renderer) IsTerminal() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsTerminal")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Logo provides a mock function with no fields
 func (_m *Renderer) Logo() {
 	_m.Called()
+}
+
+// Read provides a mock function with given fields: p
+func (_m *Renderer) Read(p []byte) (int, error) {
+	ret := _m.Called(p)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Read")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]byte) (int, error)); ok {
+		return rf(p)
+	}
+	if rf, ok := ret.Get(0).(func([]byte) int); ok {
+		r0 = rf(p)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func([]byte) error); ok {
+		r1 = rf(p)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReadLine provides a mock function with no fields
+func (_m *Renderer) ReadLine() (string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadLine")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SelectionMenu provides a mock function with given fields: ctx, title, items
@@ -104,7 +178,6 @@ func (_m *Renderer) TextMenu(ctx context.Context, title string) (string, error) 
 
 // WithSpinner provides a mock function with given fields: title, fn
 func (_m *Renderer) WithSpinner(title string, fn func()) {
-	fn()
 	_m.Called(title, fn)
 }
 
