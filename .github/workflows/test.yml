@@ -13,7 +13,7 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
     steps:
       - uses: "actions/checkout@v4"
 
@@ -30,19 +30,19 @@ jobs:
   unit:
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
     steps:
       - uses: "actions/checkout@v4"
 
       - name: "Run unit tests"
         run: "make test/unit"
 
-  ## COVER ###
+  ### COVER ###
 
   cover:
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.1"
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
     steps:
       - uses: "actions/checkout@v4"
 
@@ -55,4 +55,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: "coverage.out"
           format: "golang"
-

@@ -25,7 +25,9 @@ def is_bench_line(line: str) -> bool:
 
 
 def parse_bench_line(line: str) -> Union[Tuple[str, Dict[str, float]], None]:
-    """parses `go test -bench` results output. Example:
+    """parses `go test -bench` results output.
+    Example:
+
     BenchmarkPartitioning/CI/cpu-4          2569041    475.5 ns/op    218.73 MB/s    8412793 rows/s   16825587 values/s
 
     result:
@@ -37,10 +39,6 @@ def parse_bench_line(line: str) -> Union[Tuple[str, Dict[str, float]], None]:
         return None
 
     bench_name = parts[0]
-    try:
-        iter_count = int(parts[1])
-    except ValueError:
-        return None
 
     metrics = {}
     for value, metric in zip(parts[2::2], parts[3::2]):
@@ -70,14 +68,15 @@ def parse_metrics_file(path: str) -> Dict[str, Dict[str, List[float]]]:
             if name_test not in results:
                 results[name_test] = {m: [] for m in KNOWN_METRICS.keys()}
 
-            for m, value in metrics.items():
-                results[name_test][m].append(value)
+            for metric_name, value in metrics.items():
+                results[name_test][metric_name].append(value)
     return results
 
 
 def aggregate_results(
         parsed_metrics: Dict[str, Dict[str, List[float]]],
-        method: Literal["mean", "median"]) -> Dict[str, Dict[str, float]]:
+        method: Literal["mean", "median"],
+) -> Dict[str, Dict[str, float]]:
     aggregated: Dict[str, Dict[str, float]] = {}
     for bench_name, metrics in parsed_metrics.items():
         aggregated[bench_name] = {}
@@ -100,11 +99,11 @@ def format_metric_changes(
 ) -> str:
     # the metric exists only in new file
     if old_val is None and new_val is not None:
-        return f"New metric: {new_val:.2f}"
+        return f"New metric: {new_val:.2f} ⚠️"
 
     # the metric exists only in old file
     if new_val is None and old_val is not None:
-        return "No new metric value was detected"
+        return f"Only old metric: {old_val:.2f} ⚠️"
 
     # the metric doesn't exist for this bench
     if old_val is None and new_val is None:
@@ -119,11 +118,11 @@ def format_metric_changes(
     if alert_threshold is not None and abs(change_pct) >= alert_threshold:
         emoji = alert_emojis['good'] if is_better else alert_emojis['bad']
 
-    result = f"{humanize_number(old_val)} → {humanize_number(new_val)} ({change_pct:+.2f}%)"
-    return result if emoji == "" else result + f" {emoji}"
+    res = f"{humanize_number(old_val)} → {humanize_number(new_val)} ({change_pct:+.2f}%)"
+    return res if emoji == "" else res + f" {emoji}"
+
 
 def humanize_number(val: float) -> str:
-    """Форматирует число с постфиксом K/M при больших значениях"""
     abs_val = abs(val)
     if abs_val >= 1_000_000:
         return f"{val/1_000_000:.2f}M"
@@ -131,6 +130,7 @@ def humanize_number(val: float) -> str:
         return f"{val/1_000:.2f}K"
     else:
         return f"{val:.2f}"
+
 
 def format_benchmark_name(raw_name: str) -> str:
     name = raw_name[len("Benchmark"):] if raw_name.startswith("Benchmark") else raw_name
@@ -146,7 +146,8 @@ def format_benchmark_name(raw_name: str) -> str:
 
     return name
 
-def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None, benches_filter_regexp=".*"):
+
+def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None):
     rows = []
     for bench_name in sorted(set(old_metrics.keys()) | set(new_metrics.keys())):
         if "/CI/" not in bench_name:
@@ -158,7 +159,9 @@ def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None, benche
             new_val = new_metrics.get(bench_name, {}).get(metric, None)
 
             try:
-                formated_metric = format_metric_changes(old_val, new_val, metric, alert_threshold, EMOJIS, KNOWN_METRICS)
+                formated_metric = format_metric_changes(
+                    old_val, new_val, metric, alert_threshold, EMOJIS, KNOWN_METRICS,
+                )
                 row[metric] = formated_metric
             except Exception as e:
                 raise f"failed format metric changes for benchmark '{bench_name}': {e}"
@@ -167,6 +170,7 @@ def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None, benche
     df = pd.DataFrame(rows)
     df = df[["Benchmark"] + list(TRACKED_METRICS)]
     return df.to_markdown(index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare go test -bench results in markdown format")

@@ -7,14 +7,11 @@ env:
   GIT_CONFIG_GLOBAL: "/root/.gitconfig" # fix path in container (https://github.com/actions/runner/issues/2033)
 
 jobs:
-
-### PERFORMANCE ###
-
   compare-performance:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/hoodiehuuuuu/sdvg-ci:0.0.1"
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
     permissions:
       pull-requests: write
       packages: read
@@ -65,7 +62,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref_name == github.event.repository.default_branch }}
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/hoodiehuuuuu/sdvg-ci:0.0.1"
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
 
     steps:
       - uses: "actions/checkout@v4"
