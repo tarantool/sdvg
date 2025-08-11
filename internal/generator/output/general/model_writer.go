@@ -27,6 +27,8 @@ import (
 
 const buffer = 100
 
+var ErrPartitionFilesLimitExceeded = errors.New("partition files limit exceeded")
+
 // ModelWriter type implements the general logic of writing data.
 type ModelWriter struct {
 	model              *models.Model
@@ -257,14 +259,14 @@ func (w *ModelWriter) getPartitionPath(row *models.DataRow) string {
 
 // shouldContinue returns error if user don't want to continue generation.
 func (w *ModelWriter) shouldContinue(ctx context.Context) error {
-	if w.confirm != nil && w.partitionFilesLimit != nil && w.partitionFilesCount == *w.partitionFilesLimit {
+	if w.confirm != nil && w.partitionFilesLimit != nil && w.partitionFilesCount == *w.partitionFilesLimit+1 {
 		shouldContinue, err := w.confirm(ctx, "Number of partitions files reached limit. Continue?")
 		if err != nil {
 			return err
 		}
 
 		if !shouldContinue {
-			return errors.Errorf("number of partitions achieved limit exceeded: %v", w.partitionFilesCount)
+			return fmt.Errorf("%w: %v", ErrPartitionFilesLimitExceeded, w.partitionFilesCount)
 		}
 	}
 

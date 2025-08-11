@@ -220,7 +220,7 @@ func TestPartitionPaths(t *testing.T) {
 			},
 		}
 
-		writer, err := newModelWriter(tCase.model, devnullConfig, false)
+		writer, err := newModelWriter(tCase.model, devnullConfig, false, nil)
 		require.NoError(t, err)
 
 		err = writer.WriteRows(context.Background(), tCase.data)

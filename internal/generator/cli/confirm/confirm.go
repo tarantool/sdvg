@@ -22,10 +22,13 @@ func BuildConfirmTTY(in io.Reader, out io.Writer) func(ctx context.Context, ques
 	return func(ctx context.Context, question string) (bool, error) {
 		fmt.Fprintln(out)
 
+		cancelableIn := newCancelableReader(in)
+		defer cancelableIn.Close()
+
 		prompt := promptui.Prompt{
 			Label:   question + " [y/N]: ",
 			Default: "y",
-			Stdin:   utils.DummyReadWriteCloser{Reader: in},
+			Stdin:   cancelableIn,
 			Stdout:  utils.DummyReadWriteCloser{Writer: out},
 		}
 		validate := func(s string) error {

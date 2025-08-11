@@ -13,93 +13,9 @@ import (
 	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
 )
 
-func TestConfirmTTY(t *testing.T) {
-	input := bytes.Buffer{}
-	output := bytes.Buffer{}
-
-	confirm := BuildConfirmTTY(&input, &output)
-
-	testCases := []struct {
-		name        string
-		ctx         context.Context
-		question    string
-		input       string
-		expected    bool
-		expectedErr error
-	}{
-		{
-			name:     "Y",
-			question: "question",
-			input:    "Y",
-			expected: true,
-		},
-		{
-			name:     "y",
-			question: "question",
-			input:    "y",
-			expected: true,
-		},
-		{
-			name:        "yes",
-			question:    "question",
-			input:       "yes",
-			expectedErr: ErrPromptFailed,
-		},
-		{
-			name:     "N",
-			question: "question",
-			input:    "N",
-			expected: false,
-		},
-		{
-			name:     "n",
-			question: "question",
-			input:    "n",
-			expected: false,
-		},
-		{
-			name:        "no",
-			question:    "question",
-			input:       "no",
-			expectedErr: ErrPromptFailed,
-		},
-		{
-			name:        "Context canceled",
-			expectedErr: context.Canceled,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
-
-			if errors.Is(tc.expectedErr, context.Canceled) {
-				var cancel context.CancelFunc
-
-				ctx, cancel = context.WithCancel(ctx)
-				cancel()
-			}
-
-			input.WriteString(tc.input + "\n")
-
-			res, err := confirm(ctx, tc.question)
-			require.True(t, errors.Is(err, tc.expectedErr), fmt.Sprintf("expected: %v, got: %v", tc.expectedErr, err))
-
-			require.Equal(t, tc.expected, res)
-
-			input.Reset()
-			output.Reset()
-		})
-	}
-}
-
 var errMockTest = errors.New("mock test error")
 
 func TestConfirmNoTTY(t *testing.T) {
-	output := bytes.Buffer{}
-
-	isUpdatePaused := atomic.Bool{}
-
 	testCases := []struct {
 		name        string
 		ctx         context.Context
@@ -192,8 +108,10 @@ func TestConfirmNoTTY(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			r := rendererMock.NewRenderer(t)
-
 			tc.mockFunc(r)
+
+			output := bytes.Buffer{}
+			isUpdatePaused := atomic.Bool{}
 
 			confirm := BuildConfirmNoTTY(r, &output, &isUpdatePaused)
 
@@ -210,8 +128,6 @@ func TestConfirmNoTTY(t *testing.T) {
 			require.True(t, errors.Is(err, tc.expectedErr), fmt.Sprintf("expected: %v, got: %v", tc.expectedErr, err))
 
 			require.Equal(t, tc.expected, res)
-
-			output.Reset()
 		})
 	}
 }

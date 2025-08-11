@@ -256,7 +256,7 @@ func TestNewGenerateCommand(t *testing.T) {
 		cliOpts.SetOut(streams.NewOut(os.Stdout))
 
 		cmd := NewGenerateCommand(cliOpts)
-		cmd.SetArgs([]string{"-F"})
+		cmd.SetArgs([]string{"-f"})
 
 		err = cmd.Execute()
 

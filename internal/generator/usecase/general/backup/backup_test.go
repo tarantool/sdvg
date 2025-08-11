@@ -35,6 +35,7 @@ func TestHandleBackup(t *testing.T) {
 		},
 		false,
 		false,
+		nil,
 	)
 
 	type testCase struct {
@@ -189,7 +190,7 @@ func TestHandleCheckpoint(t *testing.T) {
 		"model4": 954,
 	}
 
-	out := general.NewOutput(cfg, false, false)
+	out := general.NewOutput(cfg, false, false, nil)
 	require.NoError(t, out.Setup())
 
 	for modelName, generateFrom := range checkpoints {

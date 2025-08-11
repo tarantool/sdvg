@@ -301,7 +301,7 @@ func runModelsBenches(
 		copyCfg := *genCfg
 		SetOutputParams(&copyCfg, uint64(b.N))
 
-		out := general.NewOutput(&copyCfg, false, true)
+		out := general.NewOutput(&copyCfg, false, true, nil)
 		require.NoError(b, out.Setup())
 
 		b.ResetTimer()
