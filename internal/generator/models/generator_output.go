@@ -18,6 +18,8 @@ const (
 	tcsTimeoutHeader            = "x-tcs-timeout_ms"
 	ParquetDateTimeMillisFormat = "millis"
 	ParquetDateTimeMicrosFormat = "micros"
+
+	PartitionFilesLimitDefault = 1000
 )
 
 // DataRow type is used to represent any data row that was generated.
@@ -167,10 +169,11 @@ var _ Field = (*CSVConfig)(nil)
 
 // CSVConfig type used to describe output config for CSV implementation.
 type CSVConfig struct {
-	FloatPrecision int    `json:"float_precision" yaml:"float_precision"`
-	DatetimeFormat string `json:"datetime_format" yaml:"datetime_format"`
-	Delimiter      string `backup:"true"          json:"delimiter"       yaml:"delimiter"`
-	WithoutHeaders bool   `backup:"true"          json:"without_headers" yaml:"without_headers"`
+	FloatPrecision      int    `json:"float_precision" yaml:"float_precision"`
+	DatetimeFormat      string `json:"datetime_format" yaml:"datetime_format"`
+	Delimiter           string `backup:"true"          json:"delimiter"       yaml:"delimiter"`
+	WithoutHeaders      bool   `backup:"true"          json:"without_headers" yaml:"without_headers"`
+	PartitionFilesLimit *int   `json:"partition_files_limit" yaml:"partition_files_limit"`
 }
 
 func (c *CSVConfig) Parse() error { return nil }
@@ -187,6 +190,11 @@ func (c *CSVConfig) FillDefaults() {
 	if c.Delimiter == "" {
 		c.Delimiter = ","
 	}
+
+	if c.PartitionFilesLimit == nil {
+		c.PartitionFilesLimit = new(int)
+		*c.PartitionFilesLimit = 1000
+	}
 }
 
 func (c *CSVConfig) Validate() []error {
@@ -198,6 +206,10 @@ func (c *CSVConfig) Validate() []error {
 
 	if utf8.RuneCountInString(c.Delimiter) != 1 {
 		errs = append(errs, errors.Errorf("the delimiter must consist of one character, got %v", c.Delimiter))
+	}
+
+	if c.PartitionFilesLimit != nil && *c.PartitionFilesLimit <= 0 {
+		errs = append(errs, errors.Errorf("partition files limit should be greater than 0, got: %v", *c.PartitionFilesLimit))
 	}
 
 	return errs
@@ -295,9 +307,10 @@ var _ Field = (*ParquetConfig)(nil)
 
 // ParquetConfig type used to describe output config for parquet implementation.
 type ParquetConfig struct {
-	CompressionCodec string `backup:"true"          json:"compression_codec" yaml:"compression_codec"`
-	FloatPrecision   int    `json:"float_precision" yaml:"float_precision"`
-	DateTimeFormat   string `json:"datetime_format" yaml:"datetime_format"`
+	CompressionCodec    string `backup:"true"          json:"compression_codec" yaml:"compression_codec"`
+	FloatPrecision      int    `json:"float_precision" yaml:"float_precision"`
+	DateTimeFormat      string `json:"datetime_format" yaml:"datetime_format"`
+	PartitionFilesLimit *int   `json:"partition_files_limit" yaml:"partition_files_limit"`
 }
 
 //nolint:lll
@@ -318,6 +331,11 @@ func (c *ParquetConfig) FillDefaults() {
 	if c.DateTimeFormat == "" {
 		c.DateTimeFormat = ParquetDateTimeMillisFormat
 	}
+
+	if c.PartitionFilesLimit == nil {
+		c.PartitionFilesLimit = new(int)
+		*c.PartitionFilesLimit = 1000
+	}
 }
 
 func (c *ParquetConfig) Validate() []error {
@@ -335,6 +353,10 @@ func (c *ParquetConfig) Validate() []error {
 	if !slices.Contains(parquetSupportedDateTimeFormats, c.DateTimeFormat) {
 		errs = append(errs, errors.Errorf("unknown datetime format %v, supported %v",
 			c.DateTimeFormat, parquetSupportedDateTimeFormats))
+	}
+
+	if c.PartitionFilesLimit != nil && *c.PartitionFilesLimit <= 0 {
+		errs = append(errs, errors.Errorf("partition files limit should be greater than 0, got: %v", *c.PartitionFilesLimit))
 	}
 
 	return errs

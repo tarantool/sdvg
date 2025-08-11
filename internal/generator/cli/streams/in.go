@@ -5,13 +5,8 @@ import (
 	"io"
 
 	"github.com/moby/term"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
 )
-
-type nopReadCloser struct {
-	io.Reader
-}
-
-func (nopReadCloser) Close() error { return nil }
 
 // In is an input stream to read user input. It implements [io.ReadCloser].
 type In struct {
@@ -26,7 +21,7 @@ func NewIn(in io.Reader) *In {
 	if readCloser, ok := in.(io.ReadCloser); ok {
 		i.in = readCloser
 	} else {
-		i.in = nopReadCloser{in}
+		i.in = utils.DummyReadWriteCloser{Reader: in}
 	}
 
 	_, i.isTerminal = term.GetFdInfo(in)

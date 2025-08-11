@@ -253,6 +253,7 @@ func (t *Task) skipRows() {
 }
 
 // generateAndSaveBatch function generate batch of values for selected column and send it to output.
+// The next batch is written only after the previous one has completed saving.
 func (t *Task) generateAndSaveBatch(
 	ctx context.Context, outputSync *common.WorkerSyncer,
 	modelName string, generators []*generator.BatchGenerator, count uint64,

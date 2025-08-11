@@ -1,6 +1,8 @@
 package render
 
-import "context"
+import (
+	"context"
+)
 
 // Renderer interface implementation should render interactive menu.
 //
@@ -16,4 +18,10 @@ type Renderer interface {
 	TextMenu(ctx context.Context, title string) (string, error)
 	// WithSpinner should display spinner.
 	WithSpinner(title string, fn func())
+	// IsTerminal should return true if renderer is connected to a terminal.
+	IsTerminal() bool
+	// ReadLine should read input from input stream.
+	ReadLine() (string, error)
+	// Read should read from input stream.
+	Read(p []byte) (int, error)
 }

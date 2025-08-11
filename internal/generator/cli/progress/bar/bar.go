@@ -77,3 +77,8 @@ func (p *ProgressBarManager) UpdateProgress(name string, progress usecase.Progre
 func (p *ProgressBarManager) Wait() {
 	p.progressManager.Wait()
 }
+
+// Write writes to stdout.
+func (p *ProgressBarManager) Write(b []byte) (int, error) {
+	return p.progressManager.Write(b)
+}

@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/cli/confirm"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	"github.com/tarantool/sdvg/internal/generator/output"
 )
@@ -20,13 +21,15 @@ var _ output.Output = (*Output)(nil)
 type Output struct {
 	config             *models.OutputConfig
 	models             map[string]*models.Model
+	writersByModelName map[string]*ModelWriter
+
 	continueGeneration bool
 	forceGeneration    bool
-	writersByModelName map[string]*ModelWriter
+	confirm            confirm.Confirm
 }
 
 // NewOutput function creates Output object.
-func NewOutput(cfg *models.GenerationConfig, continueGeneration, forceGeneration bool) output.Output {
+func NewOutput(cfg *models.GenerationConfig, continueGeneration, forceGeneration bool, confirm confirm.Confirm) output.Output {
 	filteredModels := make(map[string]*models.Model)
 
 	for modelName, model := range cfg.Models {
@@ -41,6 +44,7 @@ func NewOutput(cfg *models.GenerationConfig, continueGeneration, forceGeneration
 		continueGeneration: continueGeneration,
 		forceGeneration:    forceGeneration,
 		writersByModelName: make(map[string]*ModelWriter),
+		confirm:            confirm,
 	}
 }
 
@@ -56,7 +60,7 @@ func (o *Output) Setup() error {
 	writersByModelName := make(map[string]*ModelWriter)
 
 	for modelName, model := range o.models {
-		modelWriter, err := newModelWriter(model, o.config, o.continueGeneration)
+		modelWriter, err := newModelWriter(model, o.config, o.continueGeneration, o.confirm)
 		if err != nil {
 			return err
 		}

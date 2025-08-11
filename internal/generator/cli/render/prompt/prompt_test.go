@@ -427,7 +427,7 @@ func readLinesTestFunc(t *testing.T, tc readLinesTestCase, mode int) {
 
 	switch mode {
 	case SingleLine:
-		actual, err = renderer.readLine()
+		actual, err = renderer.ReadLine()
 	case MultiLine:
 		actual, err = renderer.readMultiline()
 	}
