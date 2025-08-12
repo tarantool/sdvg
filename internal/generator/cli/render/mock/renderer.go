@@ -178,6 +178,7 @@ func (_m *Renderer) TextMenu(ctx context.Context, title string) (string, error) 
 
 // WithSpinner provides a mock function with given fields: title, fn
 func (_m *Renderer) WithSpinner(title string, fn func()) {
+	fn()
 	_m.Called(title, fn)
 }
 

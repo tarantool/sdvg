@@ -6,6 +6,8 @@ import (
 
 // Renderer interface implementation should render interactive menu.
 //
+// after regenerating mock, do not forget to add call to fn() argument in WithSpinner
+//
 //go:generate go run github.com/vektra/mockery/v2@v2.51.1 --name=Renderer --output=mock --outpkg=mock
 type Renderer interface {
 	// Logo should display application logo.
