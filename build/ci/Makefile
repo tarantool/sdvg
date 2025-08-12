@@ -27,7 +27,7 @@ alert_threshold ?= 5
 aggregation_method ?= "mean"
 
 bench/compare:
-	python ./build/ci/compare_benchmarks.py \
+	@python ./build/ci/compare_benchmarks.py \
 	  $(old_bench) $(new_bench) \
 	  --alert-threshold $(alert_threshold) \
 	  --aggregation $(aggregation_method)
