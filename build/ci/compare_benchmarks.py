@@ -1,18 +1,17 @@
 import re
 import argparse
-
 import statistics
 import pandas as pd
-from typing import Dict, Union, Tuple, Optional, List, Literal
+from typing import Dict, Union, Tuple, List, Literal
 
 KNOWN_METRICS = {
-    'ns/op':          {'better': 'down'},
-    'MB/s':           {'better': 'up'},
-    'rows/s':         {'better': 'up'},
-    'values/s':       {'better': 'up'},
+    'ns/op':    {'better': 'down'},
+    'MB/s':     {'better': 'up'},
+    'rows/s':   {'better': 'up'},
+    'values/s': {'better': 'up'},
 }
 
-TRACKED_METRICS = {'MB/s', 'rows/s'}
+TRACKED_METRICS = {'MB/s', 'values/s'}
 
 EMOJIS = {
     'good': '⚡️',
@@ -43,13 +42,11 @@ def parse_bench_line(line: str) -> Union[Tuple[str, Dict[str, float]], None]:
     metrics = {}
     for value, metric in zip(parts[2::2], parts[3::2]):
         if metric not in KNOWN_METRICS:
-            raise ValueError(
-                f"Specify how to compare the metric '{metric}' in the KNOWN_METRICS table for test '{bench_name}'"
-            )
+            raise ValueError(f"Unknown metric '{metric}' in test '{bench_name}'")
         try:
             val = float(value)
         except ValueError:
-            raise ValueError(f"failed parse value '{value}' for '{metric}' metric")
+            raise ValueError(f"Failed to parse value '{value}' for '{metric}'")
         metrics[metric] = val
     return bench_name, metrics
 
@@ -73,10 +70,8 @@ def parse_metrics_file(path: str) -> Dict[str, Dict[str, List[float]]]:
     return results
 
 
-def aggregate_results(
-        parsed_metrics: Dict[str, Dict[str, List[float]]],
-        method: Literal["mean", "median"],
-) -> Dict[str, Dict[str, float]]:
+def aggregate_results(parsed_metrics: Dict[str, Dict[str, List[float]]],
+                      method: Literal["mean", "median"]) -> Dict[str, Dict[str, float]]:
     aggregated: Dict[str, Dict[str, float]] = {}
     for bench_name, metrics in parsed_metrics.items():
         aggregated[bench_name] = {}
@@ -96,7 +91,15 @@ def format_metric_changes(
         alert_threshold: float,
         alert_emojis: Dict[str, str],
         metric_change_interpretation: Dict[str, Dict[str, str]],
+        only_one_file: bool = False,
 ) -> str:
+    # the metric doesn't exist for this bench
+    if old_val is None and new_val is None:
+        raise f"both old and new values are 'None' for metric {metric_name}"
+
+    if only_one_file:
+        return humanize_number(old_val) if old_val else humanize_number(new_val)
+
     # the metric exists only in new file
     if old_val is None and new_val is not None:
         return f"New metric: {new_val:.2f} ⚠️"
@@ -104,10 +107,6 @@ def format_metric_changes(
     # the metric exists only in old file
     if new_val is None and old_val is not None:
         return f"Only old metric: {old_val:.2f} ⚠️"
-
-    # the metric doesn't exist for this bench
-    if old_val is None and new_val is None:
-        raise f"both old and new values are 'None' for metric {metric_name}"
 
     change_pct = ((new_val - old_val) / old_val) * 100
 
@@ -154,6 +153,14 @@ def format_benchmark_name(raw_name: str) -> str:
 
 
 def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None):
+    only_one_file = (old_metrics is None) ^ (new_metrics is None)
+
+    if old_metrics is None:
+        old_metrics = {}
+
+    if new_metrics is None:
+        new_metrics = {}
+
     rows = []
     for bench_name in sorted(set(old_metrics.keys()) | set(new_metrics.keys())):
         if "/CI/" not in bench_name:
@@ -167,12 +174,12 @@ def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None):
             try:
                 formated_metric = format_metric_changes(
                     old_val, new_val, metric, alert_threshold, EMOJIS, KNOWN_METRICS,
+                    only_one_file=only_one_file,
                 )
                 row[metric] = formated_metric
             except Exception as e:
                 raise f"failed format metric changes for benchmark '{bench_name}': {e}"
         rows.append(row)
-
     df = pd.DataFrame(rows)
     df = df[["Benchmark"] + list(TRACKED_METRICS)]
     return df.to_markdown(index=False)
@@ -180,15 +187,24 @@ def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare go test -bench results in markdown format")
-    parser.add_argument("old_file", help="Path to old benchmark results file")
-    parser.add_argument("new_file", help="Path to new benchmark results file")
+    parser.add_argument("--old-file", help="Path to old benchmark results file", default=None)
+    parser.add_argument("--new-file", help="Path to new benchmark results file", default=None)
     parser.add_argument("--alert-threshold", type=float, default=5,
                         help="Percent change threshold for adding emoji alerts")
     parser.add_argument("--aggregation", choices=["mean", "median"], default="mean",
                         help="Aggregation method for multiple runs of the same benchmark")
     args = parser.parse_args()
 
-    old = aggregate_results(parse_metrics_file(args.old_file), args.aggregation)
-    new = aggregate_results(parse_metrics_file(args.new_file), args.aggregation)
+    old_metrics = None
+    new_metrics = None
 
-    print(compare_benchmarks_df(old, new, alert_threshold=args.alert_threshold))
+    if not args.old_file and not args.new_file:
+        parser.error("You must specify at least --old-file or --new-file")
+
+    if args.old_file:
+        old_metrics = aggregate_results(parse_metrics_file(args.old_file), args.aggregation)
+
+    if args.new_file:
+        new_metrics = aggregate_results(parse_metrics_file(args.new_file), args.aggregation)
+
+    print(compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=args.alert_threshold))
