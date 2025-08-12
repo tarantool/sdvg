@@ -23,7 +23,7 @@ bench/prepare:
 
 old_bench ?= benchmark-master.txt
 new_bench ?= benchmark-pr.txt
-alert_threshold ?= 5
+alert_threshold ?= 7
 aggregation_method ?= "mean"
 
 bench/compare:

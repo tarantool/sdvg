@@ -52,11 +52,18 @@ jobs:
         run: make test/performance > benchmark-pr.txt
 
       - name: "Compare results"
-        run: make bench/compare > performance-report.md
+        run: |
+          echo -e \
+            "# Perf tests comparison: \`${{ github.event.repository.default_branch }}\` VS \`${{ github.ref_name }}\`\n" \
+            > performance-report.md
+          make bench/compare >> performance-report.md
 
       - uses: "mshick/add-pr-comment@v2"
         with:
           message-path: "performance-report.md"
+          message-id: "performance-comment-pr-${{github.event.pull_request.number }}"
+          refresh-message-position: true
+
 
   update-performance-cache:
     if: ${{ github.event_name == 'push' && github.ref_name == github.event.repository.default_branch }}
