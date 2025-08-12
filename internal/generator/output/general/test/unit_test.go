@@ -350,11 +350,11 @@ func TestConfirmationAsk(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				if tc.shouldContinue {
-					require.Equal(t, 10, len(fileNames), "there should be rows_amount dirs")
+					require.Len(t, fileNames, 10, "there should be rows_amount dirs")
 					require.NoError(t, err)
 				} else {
 					require.True(t, errors.Is(err, tc.err), "expected error: %v, got: %v", tc.err, err)
-					require.Equal(t, partitionsFileLimit, len(fileNames), "there should be partitionsFileLimit dirs")
+					require.Len(t, fileNames, partitionsFileLimit, "there should be partitionsFileLimit dirs")
 				}
 			}
 

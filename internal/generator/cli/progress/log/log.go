@@ -152,5 +152,5 @@ func (p *ProgressLogManager) eta(t *task) string {
 
 // Write writes to default stdout.
 func (p *ProgressLogManager) Write(b []byte) (int, error) {
-	return os.Stdout.Write(b)
+	return os.Stdout.Write(b) //nolint:wrapcheck
 }

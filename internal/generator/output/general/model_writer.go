@@ -64,6 +64,7 @@ func newModelWriter(
 	continueGeneration bool,
 	confirm confirm.Confirm) (*ModelWriter, error) {
 	var partitionFilesLimit *int
+
 	switch config.Type {
 	case "csv":
 		partitionFilesLimit = config.CSVParams.PartitionFilesLimit
@@ -193,6 +194,7 @@ func (w *ModelWriter) WriteRows(ctx context.Context, rows []*models.DataRow) err
 
 		if !ok {
 			w.partitionFilesCount++
+
 			err := w.shouldContinue(ctx)
 			if err != nil {
 				return err
@@ -266,7 +268,7 @@ func (w *ModelWriter) shouldContinue(ctx context.Context) error {
 		}
 
 		if !shouldContinue {
-			return fmt.Errorf("%w: %v", ErrPartitionFilesLimitExceeded, w.partitionFilesCount)
+			return errors.Wrapf(ErrPartitionFilesLimitExceeded, ": %v", w.partitionFilesCount)
 		}
 	}
 

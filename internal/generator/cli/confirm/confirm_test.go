@@ -3,12 +3,11 @@ package confirm
 import (
 	"bytes"
 	"context"
-	"errors"
-	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	rendererMock "github.com/tarantool/sdvg/internal/generator/cli/render/mock"
 )
@@ -18,7 +17,6 @@ var errMockTest = errors.New("mock test error")
 func TestConfirmNoTTY(t *testing.T) {
 	testCases := []struct {
 		name        string
-		ctx         context.Context
 		question    string
 		ch          chan time.Time
 		expected    bool
@@ -125,7 +123,7 @@ func TestConfirmNoTTY(t *testing.T) {
 			}
 
 			res, err := confirm(ctx, tc.question)
-			require.True(t, errors.Is(err, tc.expectedErr), fmt.Sprintf("expected: %v, got: %v", tc.expectedErr, err))
+			require.ErrorIs(t, err, tc.expectedErr, "expected: %v, got: %v", tc.expectedErr, err)
 
 			require.Equal(t, tc.expected, res)
 		})
@@ -154,13 +152,14 @@ func TestConfirmNoTTY_IsUpdatePaused(t *testing.T) {
 
 	mockFunc(r, ch)
 
+	//nolint:errcheck
 	go confirm(context.Background(), "")
 
 	start := time.Now()
 	ch <- start
 
 	for isUpdatePaused.Load() {
-		if time.Now().Sub(start) > 2*time.Second {
+		if time.Since(start) > 2*time.Second {
 			t.Fatal("isUpdatePaused has not been called")
 		}
 	}

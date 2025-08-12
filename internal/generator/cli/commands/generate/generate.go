@@ -175,10 +175,17 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 	return nil
 }
 
-// initProgressTrackerManager inits progress bar manager (progress.Tracker) and builds streams.Confirm func based on useTTY
-func initProgressTrackerManager(ctx context.Context, renderer render.Renderer, useTTY bool) (progress.Tracker, confirm.Confirm) {
-	var progressTrackerManager progress.Tracker
-	var confirmFunc confirm.Confirm
+// initProgressTrackerManager inits progress bar manager (progress.Tracker)
+// and builds streams.Confirm func based on useTTY.
+func initProgressTrackerManager(
+	ctx context.Context,
+	renderer render.Renderer,
+	useTTY bool,
+) (progress.Tracker, confirm.Confirm) {
+	var (
+		progressTrackerManager progress.Tracker
+		confirmFunc            confirm.Confirm
+	)
 
 	if useTTY {
 		progressTrackerManager = bar.NewProgressBarManager(ctx)

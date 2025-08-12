@@ -169,10 +169,10 @@ var _ Field = (*CSVConfig)(nil)
 
 // CSVConfig type used to describe output config for CSV implementation.
 type CSVConfig struct {
-	FloatPrecision      int    `json:"float_precision" yaml:"float_precision"`
-	DatetimeFormat      string `json:"datetime_format" yaml:"datetime_format"`
-	Delimiter           string `backup:"true"          json:"delimiter"       yaml:"delimiter"`
-	WithoutHeaders      bool   `backup:"true"          json:"without_headers" yaml:"without_headers"`
+	FloatPrecision      int    `json:"float_precision"       yaml:"float_precision"`
+	DatetimeFormat      string `json:"datetime_format"       yaml:"datetime_format"`
+	Delimiter           string `backup:"true"                json:"delimiter"             yaml:"delimiter"`
+	WithoutHeaders      bool   `backup:"true"                json:"without_headers"       yaml:"without_headers"`
 	PartitionFilesLimit *int   `json:"partition_files_limit" yaml:"partition_files_limit"`
 }
 
@@ -307,9 +307,9 @@ var _ Field = (*ParquetConfig)(nil)
 
 // ParquetConfig type used to describe output config for parquet implementation.
 type ParquetConfig struct {
-	CompressionCodec    string `backup:"true"          json:"compression_codec" yaml:"compression_codec"`
-	FloatPrecision      int    `json:"float_precision" yaml:"float_precision"`
-	DateTimeFormat      string `json:"datetime_format" yaml:"datetime_format"`
+	CompressionCodec    string `backup:"true"                json:"compression_codec"     yaml:"compression_codec"`
+	FloatPrecision      int    `json:"float_precision"       yaml:"float_precision"`
+	DateTimeFormat      string `json:"datetime_format"       yaml:"datetime_format"`
 	PartitionFilesLimit *int   `json:"partition_files_limit" yaml:"partition_files_limit"`
 }
 

@@ -22,7 +22,7 @@ func (c *cancelableReader) Read(p []byte) (int, error) {
 	case <-c.closed:
 		return 0, io.EOF
 	default:
-		return c.r.Read(p)
+		return c.r.Read(p) //nolint:wrapcheck
 	}
 }
 
@@ -33,5 +33,6 @@ func (c *cancelableReader) Close() error {
 	default:
 		close(c.closed)
 	}
+
 	return nil
 }

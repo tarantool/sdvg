@@ -18,6 +18,7 @@ var ErrPromptFailed = errors.New("prompt failed")
 // Confirm asks user a yes/no question. Returns true for “yes”.
 type Confirm func(ctx context.Context, question string) (bool, error)
 
+//nolint:gocritic
 func BuildConfirmTTY(in io.Reader, out io.Writer) func(ctx context.Context, question string) (bool, error) {
 	return func(ctx context.Context, question string) (bool, error) {
 		fmt.Fprintln(out)
@@ -35,6 +36,7 @@ func BuildConfirmTTY(in io.Reader, out io.Writer) func(ctx context.Context, ques
 			if len(s) == 1 && strings.Contains("YyNn", s) || prompt.Default != "" && len(s) == 0 {
 				return nil
 			}
+
 			return errors.New("invalid input")
 		}
 		prompt.Validate = validate
@@ -58,14 +60,18 @@ func BuildConfirmTTY(in io.Reader, out io.Writer) func(ctx context.Context, ques
 		}
 
 		if err != nil {
-			return false, fmt.Errorf("%w: %v", ErrPromptFailed, err)
+			return false, errors.Wrap(ErrPromptFailed, err.Error())
 		}
 
 		return strings.Contains("Yy", input), nil
 	}
 }
 
-func BuildConfirmNoTTY(in render.Renderer, out io.Writer, isUpdatePaused *atomic.Bool) func(ctx context.Context, question string) (bool, error) {
+func BuildConfirmNoTTY(
+	in render.Renderer,
+	out io.Writer,
+	isUpdatePaused *atomic.Bool,
+) func(ctx context.Context, question string) (bool, error) {
 	return func(ctx context.Context, question string) (bool, error) {
 		// here we pause ProgressLogManager to stop sending progress messages
 		isUpdatePaused.Store(true)

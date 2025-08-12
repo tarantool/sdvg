@@ -5,17 +5,15 @@ package confirm
 import (
 	"bytes"
 	"context"
-	"errors"
-	"fmt"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
 func TestConfirmTTY(t *testing.T) {
 	testCases := []struct {
 		name        string
-		ctx         context.Context
 		question    string
 		input       string
 		expected    bool
@@ -82,7 +80,7 @@ func TestConfirmTTY(t *testing.T) {
 			input.WriteString(tc.input + "\n")
 
 			res, err := confirm(ctx, tc.question)
-			require.True(t, errors.Is(err, tc.expectedErr), fmt.Sprintf("expected: %v, got: %v", tc.expectedErr, err))
+			require.ErrorIs(t, err, tc.expectedErr, "expected: %v, got: %v", tc.expectedErr, err)
 
 			require.Equal(t, tc.expected, res)
 		})

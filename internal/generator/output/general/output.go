@@ -29,7 +29,12 @@ type Output struct {
 }
 
 // NewOutput function creates Output object.
-func NewOutput(cfg *models.GenerationConfig, continueGeneration, forceGeneration bool, confirm confirm.Confirm) output.Output {
+func NewOutput(
+	cfg *models.GenerationConfig,
+	continueGeneration,
+	forceGeneration bool,
+	confirm confirm.Confirm,
+) output.Output {
 	filteredModels := make(map[string]*models.Model)
 
 	for modelName, model := range cfg.Models {

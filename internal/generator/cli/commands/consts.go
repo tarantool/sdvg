@@ -14,7 +14,7 @@ const (
 	ForceGenerationFlag             = "force"
 	ForceGenerationShortFlag        = "f"
 	ForceGenerationFlagDefaultValue = false
-	ForceGenerationUsage            = "Force generation even if output file conflicts found and partition files limit reached"
+	ForceGenerationUsage            = "Force generation even if output file conflicts found and partition files limit reached" //nolint:lll
 
 	TTYFlag      = "tty"
 	TTYShortFlag = "t"

@@ -80,5 +80,5 @@ func (p *ProgressBarManager) Wait() {
 
 // Write writes to stdout.
 func (p *ProgressBarManager) Write(b []byte) (int, error) {
-	return p.progressManager.Write(b)
+	return p.progressManager.Write(b) //nolint:wrapcheck
 }
