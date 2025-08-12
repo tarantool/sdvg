@@ -125,7 +125,7 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 		return err
 	}
 
-	progressTrackerManager, confirm := initProgressTrackerManager(ctx, opts.renderer, opts.useTTY)
+	progressTrackerManager, confirm := initProgressTrackerManager(ctx, opts.renderer, opts.useTTY, opts.forceGeneration)
 
 	out := general.NewOutput(generationCfg, opts.continueGeneration, opts.forceGeneration, confirm)
 
@@ -176,11 +176,12 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 }
 
 // initProgressTrackerManager inits progress bar manager (progress.Tracker)
-// and builds streams.Confirm func based on useTTY.
+// and builds confirm.Confirm func based on useTTY and forceGeneration.
 func initProgressTrackerManager(
 	ctx context.Context,
 	renderer render.Renderer,
 	useTTY bool,
+	forceGeneration bool,
 ) (progress.Tracker, confirm.Confirm) {
 	var (
 		progressTrackerManager progress.Tracker
@@ -197,6 +198,12 @@ func initProgressTrackerManager(
 		progressTrackerManager = log.NewProgressLogManager(ctx, isUpdatePaused)
 
 		confirmFunc = confirm.BuildConfirmNoTTY(renderer, progressTrackerManager, isUpdatePaused)
+	}
+
+	if forceGeneration {
+		confirmFunc = func(_ context.Context, _ string) (bool, error) {
+			return true, nil
+		}
 	}
 
 	return progressTrackerManager, confirmFunc
