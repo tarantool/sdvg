@@ -134,17 +134,23 @@ def humanize_number(val: float) -> str:
 
 def format_benchmark_name(raw_name: str) -> str:
     name = raw_name[len("Benchmark"):] if raw_name.startswith("Benchmark") else raw_name
-    name = name.replace("/", " ")
+    parts = name.split("/")
+    if len(parts) == 1:
+        return parts[0]
 
-    # replace patterns key-value on key=value
-    def replace_key_value(match):
-        key, val = match.group(1), match.group(2)
-        return f"{key}={val}"
+    base_name = " ".join(parts[:-1])
+    params_chunk = parts[-1]
 
-    name = re.sub(r"(\w+)-(\w+)", replace_key_value, name)
-    name = re.sub(r"\s+", " ", name).strip()
+    params_split = params_chunk.split("-")
+    params = []
 
-    return name
+    for i in range(0, len(params_split) - 1, 2):
+        params.append(f"{params_split[i]}={params_split[i+1]}")
+
+    if params:
+        return f"{base_name} ({', '.join(params)})"
+    else:
+        return f"{base_name}"
 
 
 def compare_benchmarks_df(old_metrics, new_metrics, alert_threshold=None):
