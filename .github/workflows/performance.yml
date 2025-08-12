@@ -1,6 +1,7 @@
-name: "Compare performance"
+name: "Performance comparison"
 
 on:
+  workflow_dispatch:
   workflow_call:
 
 env:
@@ -12,15 +13,12 @@ jobs:
     runs-on: "ubuntu-latest"
     container:
       image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
-    permissions:
-      pull-requests: write
-      packages: read
 
     steps:
       - uses: "actions/checkout@v4"
 
       - name: "Install requirements"
-        run: "make bench/prepare"
+        run: "pip install -r ./build/ci/requirements.txt"
 
       - name: "Try fetch cached benchmark result from master branch"
         id: "cache-benchmark"
@@ -41,8 +39,7 @@ jobs:
         working-directory: "master_branch"
         run: make test/performance > ../benchmark-master.txt
 
-      - name: "Save benchmark-master.txt to cache"
-        if: ${{ steps.cache-benchmark.outputs.cache-hit != 'true' }}
+      - name: "Update cache with benchmark-master.txt"
         uses: "actions/cache/save@v4"
         with:
           key: "benchmark-master"
@@ -51,22 +48,26 @@ jobs:
       - name: "Run benchmarks on PR branch"
         run: make test/performance > benchmark-pr.txt
 
-      - name: "Compare results"
+      - name: "Get comparison results"
         run: |
           echo -e \
             "# Perf tests comparison: \`${{ github.event.repository.default_branch }}\` VS \`${{ github.ref_name }}\`\n" \
             > performance-report.md
-          make bench/compare >> performance-report.md
+          python ./build/ci/compare_benchmarks.py \
+            benchmark-master.txt benchmark-pr.txt \
+            --alert-threshold 7 \
+            --aggregation mean \
+            >> performance-report.md
+          cat performance-report.md >> $GITHUB_STEP_SUMMARY
 
-      - uses: "mshick/add-pr-comment@v2"
+      - name: "Save comparison report"
+        uses: "actions/cache/save@v4"
         with:
-          message-path: "performance-report.md"
-          message-id: "performance-comment-pr-${{github.event.pull_request.number }}"
-          refresh-message-position: true
+          key: "perf-report-pr-${{ github.event.pull_request.number }}"
+          path: "performance-report.md"
 
-
-  update-performance-cache:
-    if: ${{ github.event_name == 'push' && github.ref_name == github.event.repository.default_branch }}
+  update-master-cache:
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
     runs-on: "ubuntu-latest"
     container:
       image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
