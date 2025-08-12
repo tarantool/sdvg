@@ -16,6 +16,7 @@ env:
 
 jobs:
   publish-report:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.review.state == 'approved' }}
     runs-on: "ubuntu-latest"
     permissions:
       pull-requests: write
@@ -28,6 +29,9 @@ jobs:
         with:
           key: "perf-report-pr-${{ env.PR_NUMBER }}"
           path: "performance-report.md"
+
+      - uses: "actions/checkout@v4"
+        if: ${{ steps.cache-report.outputs.cache-hit != 'true' }}
 
       - name: "Update cache for performance comparison report"
         if: ${{ steps.cache-report.outputs.cache-hit != 'true' }}
