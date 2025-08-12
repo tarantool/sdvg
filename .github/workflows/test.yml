@@ -55,3 +55,39 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: "coverage.out"
           format: "golang"
+
+  ### PERFORMANCE ###
+
+  performance:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: "./.github/workflows/perf-compare.yml"
+    with:
+      bench_master_cache_key: "benchmark-master"
+
+  update-master-cache:
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
+    runs-on: "ubuntu-latest"
+    env:
+      BENCH_MASTER_CACHE_KEY: "benchmark-master"
+    container:
+      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
+
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Create master benchmark"
+        run: make test/performance > ./benchmark-master.txt
+
+      - name: "Delete previous cache"
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete "${{ env.BENCH_MASTER_CACHE_KEY }}" --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Save benchmark-master.txt to cache"
+        uses: "actions/cache/save@v4"
+        with:
+          key: "${{ env.BENCH_MASTER_CACHE_KEY }}"
+          path: "benchmark-master.txt"
