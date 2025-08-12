@@ -12,6 +12,7 @@ test/lint/fix:
 
 test/unit:
 	go test -race ./...
+	go test ./internal/generator/cli/confirm -run '' ./internal/generator/cli/confirm/confirm_race_off_test.go
 
 test/cover: module=./...
 test/cover:
