@@ -14,7 +14,7 @@ jobs:
   binary:
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
+      image: "ghcr.io/hoodiehuuuuu/sdvg-ci:0.0.2"
     strategy:
       matrix:
         os_family: ["darwin", "linux"]
@@ -38,7 +38,7 @@ jobs:
   docker:
     runs-on: "ubuntu-latest"
     container:
-      image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
+      image: "ghcr.io/hoodiehuuuuu/sdvg-ci:0.0.2"
     strategy:
       matrix:
         os_family: ["linux"]

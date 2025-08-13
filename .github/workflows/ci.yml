@@ -48,24 +48,24 @@ jobs:
     needs: ["create-semantic-tag"]
     uses: "./.github/workflows/test.yml"
 
-  build:
-    needs: ["test"]
-    uses: "./.github/workflows/build.yml"
+#  build:
+#    needs: ["test"]
+#    uses: "./.github/workflows/build.yml"
 
-  release-latest:
-    if: "${{ github.ref_name == github.event.repository.default_branch }}"
-    needs: ["build"]
-    uses: "./.github/workflows/release.yml"
-    with:
-      release_name: "latest"
+#  release-latest:
+#    if: "${{ github.ref_name == github.event.repository.default_branch }}"
+#    needs: ["build"]
+#    uses: "./.github/workflows/release.yml"
+#    with:
+#      release_name: "latest"
+#
+#  release-version:
+#    if: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION != '' }}"
+#    needs: ["create-semantic-tag", "build"]
+#    uses: "./.github/workflows/release.yml"
+#    with:
+#      release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
 
-  release-version:
-    if: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION != '' }}"
-    needs: ["create-semantic-tag", "build"]
-    uses: "./.github/workflows/release.yml"
-    with:
-      release_name: "${{ needs.create-semantic-tag.outputs.RELEASE_VERSION }}"
-
-  deploy-docs:
-    needs: ["release-latest"]
-    uses: "./.github/workflows/doc.yml"
+#  deploy-docs:
+#    needs: ["release-latest"]
+#    uses: "./.github/workflows/doc.yml"
