@@ -47,6 +47,7 @@ jobs:
   test:
     needs: ["create-semantic-tag"]
     uses: "./.github/workflows/test.yml"
+    secrets: "inherit"
 
   build:
     needs: ["test"]
