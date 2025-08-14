@@ -55,11 +55,9 @@ jobs:
 
       - name: "Upload coverage to badge"
         if: "${{ github.ref_name == github.event.repository.default_branch }}"
-        env:
-          BADGEN_TOKEN: ${{ secrets.BADGEN_TOKEN }}
         run: |
           RESULT=$(grep -E 'total:\s+\(statements\)\s+[0-9]+\.[0-9]+%' coverage.log | grep -Eo '[0-9]+\.[0-9]+%' | sed 's/%/%25/g')
-          curl -LX PUT --header "Authorization: Bearer ${BADGEN_TOKEN}" \
+          curl -LX PUT --header "Authorization: Bearer ${{ secrets.BADGEN_TOKEN }}" \
             "https://badgen.net/memo/tarantool-sdvg-coverage-master/coverage/${RESULT}/green"
 
   ### PERFORMANCE ###
