@@ -14,10 +14,18 @@ import (
 )
 
 const (
-	FirstNameType = "first_name"
-	LastNameType  = "last_name"
-	PhoneType     = "phone"
-	TextType      = "text"
+	SimpleStringType = "simple_string"
+	FirstNameType    = "first_name"
+	LastNameType     = "last_name"
+	PhoneType        = "phone"
+	TextType         = "text"
+	HexType          = "hex"
+	Ipv4Type         = "ipv4"
+	Base64Type       = "base64"
+	Base64URLType    = "base64_url"
+	Base64RawURLType = "base64_raw_url"
+	CreditCardType   = "credit_card"
+	IsbnType         = "isbn"
 )
 
 // Model type is used to describe model of generated data.
@@ -691,7 +699,17 @@ type ColumnStringParams struct {
 	WithoutSpecialChars bool   `backup:"true" json:"without_special_chars" yaml:"without_special_chars"`
 }
 
-func (p *ColumnStringParams) Parse() error { return nil }
+func (p *ColumnStringParams) Parse() error {
+	if p.LogicalType == "" && p.Template == "" && p.Pattern == "" {
+		p.LogicalType = SimpleStringType
+	}
+
+	if p.LogicalType == CreditCardType {
+		p.Pattern = "0000 0000 0000 0000"
+	}
+
+	return nil
+}
 
 func (p *ColumnStringParams) FillDefaults() {
 	if p.MinLength == 0 {
@@ -729,7 +747,22 @@ func (p *ColumnStringParams) Validate() []error {
 		errs = append(errs, errors.Errorf("unknown locale: %s", p.Locale))
 	}
 
-	if !slices.Contains([]string{"", FirstNameType, LastNameType, PhoneType, TextType}, p.LogicalType) {
+	logicalTypes := []string{
+		SimpleStringType,
+		FirstNameType,
+		LastNameType,
+		PhoneType,
+		TextType,
+		HexType,
+		Ipv4Type,
+		Base64Type,
+		Base64URLType,
+		Base64RawURLType,
+		CreditCardType,
+		IsbnType,
+	}
+
+	if !slices.Contains(logicalTypes, p.LogicalType) {
 		errs = append(errs, errors.Errorf("unknown logical type: %s", p.LogicalType))
 	}
 

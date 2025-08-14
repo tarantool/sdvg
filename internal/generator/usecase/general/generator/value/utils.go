@@ -67,3 +67,16 @@ func replaceWithNumber(str string, char rune, number int64) string {
 
 	return string(runes)
 }
+
+//func orderedBase64(charset []rune, minLength, maxLength int, number float64) string {
+//	const tailCombinations uint64 = 4161
+//
+//	var (
+//		charsetLength = uint64(len(charset))
+//		eqIndex       = strings.IndexByte(charset, byte('='))
+//	)
+//
+//	val := make([]rune, 0)
+//
+//	return string(val)
+//}
