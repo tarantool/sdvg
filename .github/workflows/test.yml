@@ -6,6 +6,10 @@ on:
 env:
   GIT_CONFIG_GLOBAL: "/root/.gitconfig" # fix path in container (https://github.com/actions/runner/issues/2033)
 
+defaults:
+  run:
+    shell: "bash"
+
 jobs:
 
   ### LINT ###
@@ -47,14 +51,16 @@ jobs:
       - uses: "actions/checkout@v4"
 
       - name: "Measuring test coverage"
-        run: "make test/cover"
+        run: "make test/cover | tee coverage.log; exit ${PIPESTATUS[0]}"
 
-      - name: "Upload coverage to Coveralls"
-        uses: "coverallsapp/github-action@v2"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: "coverage.out"
-          format: "golang"
+      - name: "Upload coverage to badge"
+        if: "${{ github.ref_name == github.event.repository.default_branch }}"
+        env:
+          BADGEN_TOKEN: ${{ secrets.BADGEN_TOKEN }}
+        run: |
+          RESULT=$(grep -E 'total:\s+\(statements\)\s+[0-9]+\.[0-9]+%' coverage.log | grep -Eo '[0-9]+\.[0-9]+%' | sed 's/%/%25/g')
+          curl -LX PUT --header "Authorization: Bearer ${BADGEN_TOKEN}" \
+            "https://badgen.net/memo/tarantool-sdvg-coverage-master/coverage/${RESULT}/green"
 
   ### PERFORMANCE ###
 
