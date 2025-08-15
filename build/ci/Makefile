@@ -1,6 +1,6 @@
 # Arguments
 
-ci_image = ghcr.io/tarantool/sdvg-ci:0.0.1
+ci_image = ghcr.io/tarantool/sdvg-ci:0.0.2
 
 # Targets
 
