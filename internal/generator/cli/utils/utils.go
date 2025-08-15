@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -96,5 +97,14 @@ func ChooseCommand(cmd *cobra.Command, args []string, renderer render.Renderer) 
 		return err //nolint:wrapcheck
 	}
 
+	return nil
+}
+
+type DummyReadWriteCloser struct {
+	io.Reader
+	io.Writer
+}
+
+func (rwc DummyReadWriteCloser) Close() error {
 	return nil
 }

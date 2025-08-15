@@ -58,7 +58,7 @@ func handleGenerate(opts handlerOptions, c echo.Context) error {
 
 	generationConfig.OutputConfig.Dir = models.DefaultOutputDir
 
-	out := general.NewOutput(&generationConfig, false, true)
+	out := general.NewOutput(&generationConfig, false, true, nil)
 
 	taskID, err := opts.useCase.CreateTask(
 		c.Request().Context(), usecase.TaskConfig{

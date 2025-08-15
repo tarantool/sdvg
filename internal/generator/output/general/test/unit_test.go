@@ -7,10 +7,12 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.com/tarantool/sdvg/internal/generator/cli/confirm"
 	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	outputGeneral "github.com/tarantool/sdvg/internal/generator/output/general"
@@ -64,6 +66,18 @@ models:
           - type_params:
               to: 5
 `
+	oneModelConfigWithPartition = `
+models:
+  model1:
+    rows_count: 10
+    columns:
+      - name: id
+        type: integer
+        distinct_percentage: 1
+    partition_columns:
+      - name: id
+        write_to_output: true
+`
 )
 
 //nolint:cyclop
@@ -94,7 +108,7 @@ func TestContinueGeneration(t *testing.T) {
 
 	// Generate expected data
 
-	require.NoError(t, generate(t, cfg, uc, false, true))
+	require.NoError(t, generate(t, cfg, uc, false, true, nil))
 
 	expectedFilesData := make(map[string][][]string)
 
@@ -117,7 +131,7 @@ func TestContinueGeneration(t *testing.T) {
 		model.GenerateTo = model.RowsCount / 2
 	}
 
-	require.NoError(t, generate(t, cfg, uc, false, true))
+	require.NoError(t, generate(t, cfg, uc, false, true, nil))
 
 	for _, model := range cfg.Models {
 		filesCount := int(math.Ceil(float64(model.GenerateTo-model.GenerateFrom) / float64(model.RowsPerFile)))
@@ -151,7 +165,7 @@ func TestContinueGeneration(t *testing.T) {
 	require.NoError(t, cfg.ParseFromFile(configPath))
 	cfg.OutputConfig.Dir = outputDir
 
-	require.NoError(t, generate(t, cfg, uc, true, true))
+	require.NoError(t, generate(t, cfg, uc, true, true, nil))
 
 	for _, model := range cfg.Models {
 		filesCount := math.Ceil(float64(rowsCountByModel[model.Name]) / float64(model.RowsPerFile))
@@ -238,10 +252,10 @@ cause: dir for model is not empty
 
 			// Generate data in empty output dir
 
-			require.NoError(t, generate(t, cfg, uc, false, false))
+			require.NoError(t, generate(t, cfg, uc, false, false, nil))
 
 			// Try to init new output with conflicts
-			out := outputGeneral.NewOutput(cfg, false, tc.forceGeneration)
+			out := outputGeneral.NewOutput(cfg, false, tc.forceGeneration, nil)
 
 			err := out.Setup()
 			if tc.err != nil {
@@ -264,11 +278,98 @@ cause: dir for model is not empty
 	}
 }
 
+var (
+	errMockTest         = errors.New("mock test error")
+	partitionsFileLimit = 2
+)
+
+func TestConfirmationAsk(t *testing.T) {
+	testCases := []struct {
+		name           string
+		shouldContinue bool
+		wantErr        bool
+		err            error
+		confirm        confirm.Confirm
+	}{
+		{
+			name:           "Continue",
+			shouldContinue: true,
+			confirm: func(ctx context.Context, question string) (bool, error) {
+				return true, nil
+			},
+		},
+		{
+			name:           "Stop",
+			shouldContinue: false,
+			err:            outputGeneral.ErrPartitionFilesLimitExceeded,
+			confirm: func(ctx context.Context, question string) (bool, error) {
+				return false, nil
+			},
+		},
+		{
+			name:           "Error",
+			shouldContinue: false,
+			wantErr:        true,
+			err:            errMockTest,
+			confirm: func(ctx context.Context, question string) (bool, error) {
+				return false, errMockTest
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Write models config
+			tmpDir := t.TempDir()
+			configPath := filepath.Join(tmpDir, configFileName)
+			require.NoError(t, os.WriteFile(configPath, []byte(oneModelConfigWithPartition), configFilePerm))
+
+			uc := useCaseGeneral.NewUseCase(useCaseGeneral.UseCaseConfig{})
+			require.NoError(t, uc.Setup())
+
+			// Parse config
+
+			cfg := &models.GenerationConfig{}
+
+			require.NoError(t, cfg.ParseFromFile(configPath))
+
+			*cfg.OutputConfig.CSVParams.PartitionFilesLimit = partitionsFileLimit
+
+			// Generate data in empty output dir
+
+			err := generate(t, cfg, uc, false, true, tc.confirm)
+
+			// check generated partitions files amount
+			fileNames, walkErr := common.WalkWithFilter(models.DefaultOutputDir, func(entry os.DirEntry) bool {
+				return entry.IsDir() && strings.HasPrefix(entry.Name(), "id=")
+			})
+
+			require.NoError(t, walkErr, "failed to walk tmpdir: %v", tmpDir)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				if tc.shouldContinue {
+					require.Len(t, fileNames, 10, "there should be rows_amount dirs")
+					require.NoError(t, err)
+				} else {
+					require.True(t, errors.Is(err, tc.err), "expected error: %v, got: %v", tc.err, err)
+					require.Len(t, fileNames, partitionsFileLimit, "there should be partitionsFileLimit dirs")
+				}
+			}
+
+			// cleanup
+
+			require.NoError(t, os.RemoveAll(models.DefaultOutputDir))
+		})
+	}
+}
+
 //nolint:lll
-func generate(t *testing.T, cfg *models.GenerationConfig, uc usecase.UseCase, continueGeneration, forceGeneration bool) error {
+func generate(t *testing.T, cfg *models.GenerationConfig, uc usecase.UseCase, continueGeneration, forceGeneration bool, confirm confirm.Confirm) error {
 	t.Helper()
 
-	out := outputGeneral.NewOutput(cfg, continueGeneration, forceGeneration)
+	out := outputGeneral.NewOutput(cfg, continueGeneration, forceGeneration, confirm)
 
 	taskID, err := uc.CreateTask(context.Background(), usecase.TaskConfig{
 		GenerationConfig:   cfg,
@@ -279,8 +380,15 @@ func generate(t *testing.T, cfg *models.GenerationConfig, uc usecase.UseCase, co
 		return err
 	}
 
-	require.NoError(t, uc.WaitResult(taskID))
-	require.NoError(t, uc.Teardown())
+	err = uc.WaitResult(taskID)
+	if err != nil {
+		return err
+	}
+
+	err = uc.Teardown()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

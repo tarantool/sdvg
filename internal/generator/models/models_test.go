@@ -225,9 +225,10 @@ func TestGeneratorConfigYAMLParse(t *testing.T) {
 				OutputConfig: &OutputConfig{
 					Type: "csv",
 					CSVParams: &CSVConfig{
-						FloatPrecision: 2,
-						DatetimeFormat: "2006-01-02T15:04:05Z07:00",
-						Delimiter:      ",",
+						FloatPrecision:      2,
+						DatetimeFormat:      "2006-01-02T15:04:05Z07:00",
+						Delimiter:           ",",
+						PartitionFilesLimit: ptr(1000),
 					},
 				},
 			},
@@ -624,15 +625,16 @@ models:
 					Dir:                "test_output",
 					CheckpointInterval: time.Second,
 					CSVParams: &CSVConfig{
-						FloatPrecision: 2,
-						DatetimeFormat: "2006-01-02T15:04:05Z07:00",
-						Delimiter:      ",",
+						FloatPrecision:      2,
+						DatetimeFormat:      "2006-01-02T15:04:05Z07:00",
+						Delimiter:           ",",
+						PartitionFilesLimit: ptr(1000),
 					},
 				},
 			},
 		},
 		{
-			name: "CsvFullConfig",
+			name: "csv full config",
 			content: `
 random_seed: 1
 output:
@@ -641,6 +643,7 @@ output:
     datetime_format: "2006-01-02"
     float_precision: 1
     delimiter: ";"
+    partition_files_limit: 10
 models:
     test:
         rows_count: 1
@@ -656,9 +659,10 @@ models:
 					Dir:                DefaultOutputDir,
 					CheckpointInterval: 5 * time.Second,
 					CSVParams: &CSVConfig{
-						FloatPrecision: 1,
-						DatetimeFormat: "2006-01-02",
-						Delimiter:      ";",
+						FloatPrecision:      1,
+						DatetimeFormat:      "2006-01-02",
+						Delimiter:           ";",
+						PartitionFilesLimit: ptr(10),
 					},
 				},
 			},
@@ -849,6 +853,7 @@ output:
     datetime_format: micros
     float_precision: 3
     compression_codec: GZIP
+    partition_files_limit: 1
 models:
     test:
         rows_count: 1
@@ -864,9 +869,10 @@ models:
 					Dir:                DefaultOutputDir,
 					CheckpointInterval: 5 * time.Second,
 					ParquetParams: &ParquetConfig{
-						FloatPrecision:   3,
-						DateTimeFormat:   ParquetDateTimeMicrosFormat,
-						CompressionCodec: "GZIP",
+						FloatPrecision:      3,
+						DateTimeFormat:      ParquetDateTimeMicrosFormat,
+						CompressionCodec:    "GZIP",
+						PartitionFilesLimit: ptr(1),
 					},
 				},
 			},
@@ -892,9 +898,10 @@ models:
 					Dir:                DefaultOutputDir,
 					CheckpointInterval: 5 * time.Second,
 					ParquetParams: &ParquetConfig{
-						FloatPrecision:   2,
-						DateTimeFormat:   ParquetDateTimeMillisFormat,
-						CompressionCodec: "UNCOMPRESSED",
+						FloatPrecision:      2,
+						DateTimeFormat:      ParquetDateTimeMillisFormat,
+						CompressionCodec:    "UNCOMPRESSED",
+						PartitionFilesLimit: ptr(1000),
 					},
 				},
 			},
@@ -956,9 +963,10 @@ models:
 					Dir:                DefaultOutputDir,
 					CheckpointInterval: 5 * time.Second,
 					ParquetParams: &ParquetConfig{
-						FloatPrecision:   2,
-						DateTimeFormat:   ParquetDateTimeMillisFormat,
-						CompressionCodec: "UNCOMPRESSED",
+						FloatPrecision:      2,
+						DateTimeFormat:      ParquetDateTimeMillisFormat,
+						CompressionCodec:    "UNCOMPRESSED",
+						PartitionFilesLimit: ptr(1000),
 					},
 				},
 			},
@@ -1062,9 +1070,10 @@ models:
 					Dir:                DefaultOutputDir,
 					CheckpointInterval: 5 * time.Second,
 					ParquetParams: &ParquetConfig{
-						FloatPrecision:   2,
-						DateTimeFormat:   ParquetDateTimeMillisFormat,
-						CompressionCodec: "UNCOMPRESSED",
+						FloatPrecision:      2,
+						DateTimeFormat:      ParquetDateTimeMillisFormat,
+						CompressionCodec:    "UNCOMPRESSED",
+						PartitionFilesLimit: ptr(1000),
 					},
 				},
 			},
@@ -1107,6 +1116,7 @@ output:
     compression_codec: non-existent-codec
     float_precision: -1
     datetime_format: non-existent-datetime-format
+    partition_files_limit: 0
   checkpoint_interval: -1s
 models_to_ignore:
    - non-existent-column
@@ -1158,7 +1168,8 @@ output config:
 parquet params:
 - unknown compression codec non-existent-codec, supported [UNCOMPRESSED SNAPPY GZIP LZ4 LZ4RAW LZO ZSTD BROTLI]
 - float precision should be grater than 0, got -1
-- unknown datetime format non-existent-datetime-format, supported [millis micros]`,
+- unknown datetime format non-existent-datetime-format, supported [millis micros]
+- partition files limit should be greater than 0, got: 0`,
 			),
 		},
 	}

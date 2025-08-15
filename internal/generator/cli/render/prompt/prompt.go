@@ -90,7 +90,7 @@ func (r *Renderer) SelectionMenu(ctx context.Context, title string, items []stri
 		for {
 			_, _ = fmt.Fprint(r.out, "Write a number: ")
 
-			input, err := r.readLine()
+			input, err := r.ReadLine()
 			if err != nil {
 				resultChan <- result{err: err}
 
@@ -147,7 +147,7 @@ func (r *Renderer) InputMenu(ctx context.Context, title string, validateFunc fun
 		for {
 			_, _ = fmt.Fprintf(r.out, "%s: ", title)
 
-			input, err := r.readLine()
+			input, err := r.ReadLine()
 			if err != nil {
 				resultChan <- result{err: err}
 
@@ -250,6 +250,28 @@ func (r *Renderer) WithSpinner(title string, fn func()) {
 	_, _ = fmt.Fprintln(r.out, title)
 
 	fn()
+}
+
+// ReadLine reads input from stdin.
+func (r *Renderer) ReadLine() (string, error) {
+	if r.scanner.Scan() {
+		return strings.TrimSpace(r.scanner.Text()), nil
+	}
+
+	if err := r.scanner.Err(); err != nil {
+		return "", errors.New(err.Error())
+	}
+
+	return "", errors.New(io.EOF.Error())
+}
+
+// IsTerminal returns true if this stream is connected to a terminal.
+func (r *Renderer) IsTerminal() bool {
+	return r.in.IsTerminal()
+}
+
+func (r *Renderer) Read(p []byte) (int, error) {
+	return r.in.Read(p)
 }
 
 // selectionPrompt returns prompt for selection items.
@@ -369,19 +391,6 @@ func (r *Renderer) readFile(filePath string) (string, error) {
 	}
 
 	return strings.TrimSpace(sb.String()), nil
-}
-
-// readInput reads input from stdin.
-func (r *Renderer) readLine() (string, error) {
-	if r.scanner.Scan() {
-		return strings.TrimSpace(r.scanner.Text()), nil
-	}
-
-	if err := r.scanner.Err(); err != nil {
-		return "", errors.New(err.Error())
-	}
-
-	return "", errors.New(io.EOF.Error())
 }
 
 func (r *Renderer) readMultiline() (string, error) {

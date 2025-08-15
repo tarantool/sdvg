@@ -1,17 +1,11 @@
-//nolint:dupl
 package streams
 
 import (
 	"io"
 
 	"github.com/moby/term"
+	"github.com/tarantool/sdvg/internal/generator/cli/utils"
 )
-
-type nopWriteCloser struct {
-	io.Writer
-}
-
-func (nopWriteCloser) Close() error { return nil }
 
 // Out is an output stream to write normal program output. It implements an [io.WriteCloser].
 type Out struct {
@@ -26,7 +20,7 @@ func NewOut(out io.Writer) *Out {
 	if writeCloser, ok := out.(io.WriteCloser); ok {
 		o.out = writeCloser
 	} else {
-		o.out = nopWriteCloser{out}
+		o.out = utils.DummyReadWriteCloser{Writer: out}
 	}
 
 	_, o.isTerminal = term.GetFdInfo(out)

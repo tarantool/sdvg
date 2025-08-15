@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/tarantool/sdvg/internal/generator/cli/progress"
@@ -42,13 +44,16 @@ type ProgressLogManager struct {
 	ctx   context.Context //nolint:containedctx
 	tasks map[string]*task
 	wg    sync.WaitGroup
+
+	isUpdatePaused *atomic.Bool
 }
 
-// NewProgressLogManager creates NewProgressLogManager object.
-func NewProgressLogManager(ctx context.Context) progress.Tracker {
+// NewProgressLogManager creates NewProgressLogManager object. isUpdatePaused is used to pause UpdateProgress.
+func NewProgressLogManager(ctx context.Context, isUpdatePaused *atomic.Bool) progress.Tracker {
 	return &ProgressLogManager{
-		ctx:   ctx,
-		tasks: make(map[string]*task),
+		ctx:            ctx,
+		tasks:          make(map[string]*task),
+		isUpdatePaused: isUpdatePaused,
 	}
 }
 
@@ -76,6 +81,12 @@ func (p *ProgressLogManager) UpdateProgress(name string, progress usecase.Progre
 
 	if t.isDone() {
 		return
+	}
+
+	for p.isUpdatePaused.Load() {
+		if t.isDone() {
+			return
+		}
 	}
 
 	p.updateIntervals(t, progress.Done)
@@ -137,4 +148,9 @@ func (p *ProgressLogManager) eta(t *task) string {
 	seconds := int64(remaining/time.Second) % 60
 
 	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+// Write writes to default stdout.
+func (p *ProgressLogManager) Write(b []byte) (int, error) {
+	return os.Stdout.Write(b) //nolint:wrapcheck
 }

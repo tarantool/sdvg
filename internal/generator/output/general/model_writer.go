@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/cli/confirm"
 	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	"github.com/tarantool/sdvg/internal/generator/output"
@@ -25,6 +26,8 @@ import (
 )
 
 const buffer = 100
+
+var ErrPartitionFilesLimitExceeded = errors.New("partition files limit exceeded")
 
 // ModelWriter type implements the general logic of writing data.
 type ModelWriter struct {
@@ -48,6 +51,10 @@ type ModelWriter struct {
 	writtenRowsWg   *sync.WaitGroup
 	writtenRowsChan chan uint64
 	stopChan        chan struct{}
+
+	partitionFilesCount int
+	partitionFilesLimit *int
+	confirm             confirm.Confirm
 }
 
 // NewModelWriter creates ModelWriter object.
@@ -55,7 +62,16 @@ func newModelWriter(
 	model *models.Model,
 	config *models.OutputConfig,
 	continueGeneration bool,
-) (*ModelWriter, error) {
+	confirm confirm.Confirm) (*ModelWriter, error) {
+	var partitionFilesLimit *int
+
+	switch config.Type {
+	case "csv":
+		partitionFilesLimit = config.CSVParams.PartitionFilesLimit
+	case "parquet":
+		partitionFilesLimit = config.ParquetParams.PartitionFilesLimit
+	}
+
 	orderedColumnNames := make([]string, 0, len(model.Columns))
 	for _, column := range model.Columns {
 		orderedColumnNames = append(orderedColumnNames, column.Name)
@@ -108,6 +124,9 @@ func newModelWriter(
 		writtenRowsWg:           &sync.WaitGroup{},
 		writtenRowsChan:         make(chan uint64, buffer),
 		stopChan:                make(chan struct{}),
+		partitionFilesCount:     0,
+		partitionFilesLimit:     partitionFilesLimit,
+		confirm:                 confirm,
 	}
 
 	modelWriter.checkpointFilePath = modelWriter.getCheckpointFilePath()
@@ -164,6 +183,7 @@ func (w *ModelWriter) updateCheckpoint() error {
 }
 
 // WriteRows function determines the partitioning key and sends the data to the appropriate writer.
+// Note that this func should not be called concurrently from multiple goroutines because of confirm func call.
 func (w *ModelWriter) WriteRows(ctx context.Context, rows []*models.DataRow) error {
 	for _, row := range rows {
 		partitionPath := w.getPartitionPath(row)
@@ -173,6 +193,13 @@ func (w *ModelWriter) WriteRows(ctx context.Context, rows []*models.DataRow) err
 		w.writersMutex.RUnlock()
 
 		if !ok {
+			w.partitionFilesCount++
+
+			err := w.shouldContinue(ctx)
+			if err != nil {
+				return err
+			}
+
 			newDataWriter, err := w.newWriter(ctx, partitionPath)
 			if err != nil {
 				return err
@@ -230,6 +257,22 @@ func (w *ModelWriter) getPartitionPath(row *models.DataRow) string {
 	}
 
 	return sb.String()
+}
+
+// shouldContinue returns error if user don't want to continue generation.
+func (w *ModelWriter) shouldContinue(ctx context.Context) error {
+	if w.confirm != nil && w.partitionFilesLimit != nil && w.partitionFilesCount == *w.partitionFilesLimit+1 {
+		shouldContinue, err := w.confirm(ctx, "Number of partitions files reached limit. Continue?")
+		if err != nil {
+			return err
+		}
+
+		if !shouldContinue {
+			return errors.Wrapf(ErrPartitionFilesLimitExceeded, ": %v", w.partitionFilesCount)
+		}
+	}
+
+	return nil
 }
 
 // newWriter function creates writer.Writer object based on output type from models.OutputConfig.

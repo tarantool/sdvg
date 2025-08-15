@@ -1,8 +1,12 @@
 package render
 
-import "context"
+import (
+	"context"
+)
 
 // Renderer interface implementation should render interactive menu.
+//
+// after regenerating mock, do not forget to add call to fn() argument in WithSpinner
 //
 //go:generate go run github.com/vektra/mockery/v2@v2.51.1 --name=Renderer --output=mock --outpkg=mock
 type Renderer interface {
@@ -16,4 +20,10 @@ type Renderer interface {
 	TextMenu(ctx context.Context, title string) (string, error)
 	// WithSpinner should display spinner.
 	WithSpinner(title string, fn func())
+	// IsTerminal should return true if renderer is connected to a terminal.
+	IsTerminal() bool
+	// ReadLine should read input from input stream.
+	ReadLine() (string, error)
+	// Read should read from input stream.
+	Read(p []byte) (int, error)
 }

@@ -10,4 +10,6 @@ type Tracker interface {
 	UpdateProgress(name string, progress usecase.Progress)
 	// Wait function should wait for all tracked tasks to complete.
 	Wait()
+	// Write function should write to stdout.
+	Write(b []byte) (int, error)
 }

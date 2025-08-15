@@ -177,6 +177,8 @@ Structure `output.params` for format `csv`:
 - `datetime_format`: Date-time format. Default is `2006-01-02T15:04:05Z07:00`.
 - `without_headers`: Flag indicating if CSV headers should be excluded from data files.
 - `delimiter`: Single-character CSV delimiter. Default is `,`.
+- `partition_files_limit`: Limit on the number of partition files, upon reaching which a prompt will appear asking whether to continue. 
+  Ignored if the `--force` flag is specified. Default is `1000`.
 
 Structure `output.params` for format `parquet`:
 
@@ -184,6 +186,8 @@ Structure `output.params` for format `parquet`:
   Default is `UNCOMPRESSED`.
 - `float_precision`: Floating-point number precision. Default is `2`.
 - `datetime_format`: Date-time format. Supported values: `millis`, `micros`. Default is `millis`.
+- `partition_files_limit`: Limit on the number of partition files, upon reaching which a prompt will appear asking whether to continue.
+  Ignored if the `--force` flag is specified. Default is `1000`.
 
 Structure `output.params` for format `http`:
 
@@ -458,7 +462,7 @@ sdvg generate ./models.yml
 ### Ignoring conflicts
 
 If you want to automatically remove conflicting files from the output directory
-and continue generation without additional prompts, use the `-F` or `--force` flag:
+and continue generation without additional prompts, use the `-f` or `--force` flag:
 
 ```shell
 sdvg generate --force ./models.yml
@@ -469,7 +473,7 @@ sdvg generate --force ./models.yml
 To continue generation from the last recorded row:
 
 ```shell
-sdvg generate --continue-generation ./models.yml
+sdvg generate --continue ./models.yml
 ```
 
 > **Important**: To correctly continue generation, you must not change the generation configuration

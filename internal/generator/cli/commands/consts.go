@@ -6,15 +6,15 @@ const (
 	ConfigPathDefaultValue = ""
 	ConfigPathUsage        = "Location of config file"
 
-	ContinueGenerationFlag         = "continue-generation"
-	ContinueGenerationShortFlag    = "C"
+	ContinueGenerationFlag         = "continue"
+	ContinueGenerationShortFlag    = "c"
 	ContinueGenerationDefaultValue = false
 	ContinueGenerationUsage        = "Continue generation from the last recorded row"
 
 	ForceGenerationFlag             = "force"
-	ForceGenerationShortFlag        = "F"
+	ForceGenerationShortFlag        = "f"
 	ForceGenerationFlagDefaultValue = false
-	ForceGenerationUsage            = "Force generation even if output file conflicts found"
+	ForceGenerationUsage            = "Force generation even if output file conflicts found and partition files limit reached" //nolint:lll
 
 	TTYFlag      = "tty"
 	TTYShortFlag = "t"

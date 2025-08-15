@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/tarantool/sdvg/internal/generator/cli/commands"
+	"github.com/tarantool/sdvg/internal/generator/cli/confirm"
 	"github.com/tarantool/sdvg/internal/generator/cli/options"
 	"github.com/tarantool/sdvg/internal/generator/cli/progress"
 	"github.com/tarantool/sdvg/internal/generator/cli/progress/bar"
@@ -124,7 +125,9 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 		return err
 	}
 
-	out := general.NewOutput(generationCfg, opts.continueGeneration, opts.forceGeneration)
+	progressTrackerManager, confirm := initProgressTrackerManager(ctx, opts.renderer, opts.useTTY, opts.forceGeneration)
+
+	out := general.NewOutput(generationCfg, opts.continueGeneration, opts.forceGeneration, confirm)
 
 	taskID, err := opts.useCase.CreateTask(
 		ctx, usecase.TaskConfig{
@@ -143,12 +146,11 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 	)
 
 	startProgressTracking(
-		ctx,
+		progressTrackerManager,
 		opts.useCase,
 		taskID,
 		&finished,
 		&wg,
-		opts.useTTY,
 	)
 
 	err = opts.useCase.WaitResult(taskID)
@@ -173,25 +175,50 @@ func runGenerate(ctx context.Context, opts *generateOptions) error {
 	return nil
 }
 
+// initProgressTrackerManager inits progress bar manager (progress.Tracker)
+// and builds confirm.Confirm func based on useTTY and forceGeneration.
+func initProgressTrackerManager(
+	ctx context.Context,
+	renderer render.Renderer,
+	useTTY bool,
+	forceGeneration bool,
+) (progress.Tracker, confirm.Confirm) {
+	var (
+		progressTrackerManager progress.Tracker
+		confirmFunc            confirm.Confirm
+	)
+
+	if useTTY {
+		progressTrackerManager = bar.NewProgressBarManager(ctx)
+
+		confirmFunc = confirm.BuildConfirmTTY(renderer, progressTrackerManager)
+	} else {
+		isUpdatePaused := &atomic.Bool{}
+
+		progressTrackerManager = log.NewProgressLogManager(ctx, isUpdatePaused)
+
+		confirmFunc = confirm.BuildConfirmNoTTY(renderer, progressTrackerManager, isUpdatePaused)
+	}
+
+	if forceGeneration {
+		confirmFunc = func(_ context.Context, _ string) (bool, error) {
+			return true, nil
+		}
+	}
+
+	return progressTrackerManager, confirmFunc
+}
+
 // startProgressTracking runs function to track progress of task
 // by getting progress from usecase object and displaying it.
 func startProgressTracking(
-	ctx context.Context,
+	progressTrackerManager progress.Tracker,
 	uc usecase.UseCase,
 	taskID string,
 	finished *atomic.Bool,
 	wg *sync.WaitGroup,
-	useTTY bool,
 ) {
 	const delay = 500 * time.Millisecond
-
-	var progressTrackerManager progress.Tracker
-
-	if useTTY {
-		progressTrackerManager = bar.NewProgressBarManager(ctx)
-	} else {
-		progressTrackerManager = log.NewProgressLogManager(ctx)
-	}
 
 	wg.Add(1)
 
