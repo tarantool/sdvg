@@ -1,10 +1,13 @@
 package value
 
 import (
+	"bytes"
 	"math"
 	"math/big"
 	"slices"
 	"strings"
+	"sync"
+	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/tarantool/sdvg/internal/generator/models"
@@ -20,6 +23,8 @@ var _ Generator = (*StringGenerator)(nil)
 type StringGenerator struct {
 	*models.ColumnStringParams
 	totalValuesCount uint64
+	template         *template.Template
+	bufPool          *sync.Pool
 	localeModule     locale.LocalModule
 	charset          []rune
 	countByPrefix    []float64
@@ -29,6 +34,26 @@ type StringGenerator struct {
 
 //nolint:cyclop
 func (g *StringGenerator) Prepare() error {
+	if g.Template != "" {
+		tmpl, err := template.New("template").
+			Option("missingkey=error").
+			Funcs(template.FuncMap{
+				"upper": strings.ToUpper,
+				"lower": strings.ToLower,
+			}).
+			Parse(g.Template)
+		if err != nil {
+			return errors.Errorf("failed to parse template: %s", err.Error())
+		}
+
+		g.template = tmpl
+		g.bufPool = &sync.Pool{
+			New: func() any {
+				return new(bytes.Buffer)
+			},
+		}
+	}
+
 	switch g.Locale {
 	case "ru":
 		g.localeModule = ru.NewLocaleModule(g.LogicalType, g.MinLength, g.MaxLength)
@@ -171,8 +196,28 @@ func (g *StringGenerator) calculateCompletions(length int) []int64 {
 }
 
 // templateString returns n-th string by template.
-func (g *StringGenerator) templateString(number float64) string {
-	val := []rune(g.Template)
+//
+//nolint:forcetypeassert
+func (g *StringGenerator) templateString(rowValues map[string]any) (string, error) {
+	buf := g.bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+
+	err := g.template.Execute(buf, rowValues)
+	if err != nil {
+		g.bufPool.Put(buf)
+
+		return "", errors.New(err.Error())
+	}
+
+	val := buf.String()
+	g.bufPool.Put(buf)
+
+	return val, nil
+}
+
+// patternString returns n-th string by pattern.
+func (g *StringGenerator) patternString(number float64) string {
+	val := []rune(g.Pattern)
 	index := number / float64(g.totalValuesCount)
 
 	for i := range val {
@@ -410,9 +455,18 @@ func (g *StringGenerator) simpleString(number float64) string {
 }
 
 // Value returns n-th string from range.
-func (g *StringGenerator) Value(number float64) (any, error) {
+func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, error) {
 	if g.Template != "" {
-		return g.templateString(number), nil
+		val, err := g.templateString(rowValues)
+		if err != nil {
+			return nil, errors.WithMessage(err, "failed to render template string")
+		}
+
+		return val, nil
+	}
+
+	if g.Pattern != "" {
+		return g.patternString(number), nil
 	}
 
 	switch g.LogicalType {
@@ -432,13 +486,29 @@ func (g *StringGenerator) Value(number float64) (any, error) {
 //nolint:cyclop
 func (g *StringGenerator) ValuesCount() float64 {
 	if g.Template != "" {
-		totalCount := float64(0)
-		totalCount += math.Pow(float64(len(g.localeModule.LargeLetters())), float64(strings.Count(g.Template, "A")))
-		totalCount += math.Pow(float64(len(g.localeModule.SmallLetters())), float64(strings.Count(g.Template, "a")))
-		totalCount += math.Pow(float64(len(locale.Numbers)), float64(strings.Count(g.Template, "0")))
-		totalCount += math.Pow(float64(len(locale.SpecialChars)), float64(strings.Count(g.Template, "#")))
+		return 1.0
+	}
 
-		return totalCount
+	if g.Pattern != "" {
+		total := 1.0
+
+		if count := strings.Count(g.Pattern, "A"); count > 0 {
+			total *= math.Pow(float64(len(g.localeModule.LargeLetters())), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "a"); count > 0 {
+			total *= math.Pow(float64(len(g.localeModule.SmallLetters())), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "0"); count > 0 {
+			total *= math.Pow(float64(len(locale.Numbers)), float64(count))
+		}
+
+		if count := strings.Count(g.Pattern, "#"); count > 0 {
+			total *= math.Pow(float64(len(locale.SpecialChars)), float64(count))
+		}
+
+		return total
 	}
 
 	switch g.LogicalType {

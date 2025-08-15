@@ -3,10 +3,8 @@ package http
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 	"sync"
 	"text/template"
@@ -20,13 +18,15 @@ import (
 )
 
 const (
+	maxBodySize  = 1 << 20 // 1 Mb
 	retryWaitMin = 1 * time.Second
 	retryWaitMax = 10 * time.Minute
 )
 
 type bodyPayload struct {
-	ModelName string
-	Rows      []map[string]any
+	ModelName   string
+	ColumnNames []string
+	Rows        [][]any
 }
 
 // Verify interface compliance in compile time.
@@ -40,6 +40,8 @@ type Writer struct {
 
 	retryableClient *retryablehttp.Client
 	lastErr         error
+
+	payloadPool *sync.Pool
 
 	buffer       []*models.DataRow
 	bodyTemplate *template.Template
@@ -60,11 +62,27 @@ func NewWriter(
 	config *models.HTTPParams,
 	writtenRowsChan chan<- uint64,
 ) *Writer {
+	columnNames := make([]string, len(model.Columns))
+	for i, columns := range model.Columns {
+		columnNames[i] = columns.Name
+	}
+
+	payloadPool := &sync.Pool{
+		New: func() any {
+			return &bodyPayload{
+				ModelName:   model.Name,
+				ColumnNames: columnNames,
+				Rows:        make([][]any, 0, config.BatchSize),
+			}
+		},
+	}
+
 	httpWriter := &Writer{
 		ctx:             ctx,
 		model:           model,
 		config:          config,
 		writtenRowsChan: writtenRowsChan,
+		payloadPool:     payloadPool,
 		buffer:          make([]*models.DataRow, 0, config.BatchSize),
 		writerChan:      make(chan []*models.DataRow),
 		errorsChan:      make(chan error, 1),
@@ -131,15 +149,10 @@ func (w *Writer) Init() error {
 		return errors.New("the writer has already been initialized")
 	}
 
-	tmpl := template.New("body").Funcs(template.FuncMap{
-		"json": func(v any) (string, error) {
-			data, err := json.Marshal(v)
-
-			return string(data), err
-		},
-		"len": func(v any) int {
-			return reflect.ValueOf(v).Len()
-		},
+	tmpl := template.New("format_template").Funcs(template.FuncMap{
+		"json":     toJSON,
+		"len":      length,
+		"rowsJson": rowsJSON,
 	})
 
 	tmpl, err := tmpl.Parse(w.config.FormatTemplate)
@@ -211,44 +224,36 @@ func (w *Writer) handleBatch(batch []*models.DataRow) error {
 }
 
 func (w *Writer) buildRequest(dataRows []*models.DataRow) (*retryablehttp.Request, error) {
-	// Build a slice of row objects by mapping column names to their corresponding values.
-	// Each row is represented as a map[string]any, with column names as keys and values from dataRows.
-	rows := make([]map[string]any, 0, len(dataRows))
+	// Grab a payload with a ready slice and reset length to zero, keep capacity.
+	//
+	//nolint:forcetypeassert
+	payload := w.payloadPool.Get().(*bodyPayload)
+	payload.Rows = payload.Rows[:0]
 
 	for _, dataRow := range dataRows {
-		if len(dataRow.Values) != len(w.model.Columns) {
-			return nil, errors.New("values count does not match columns count")
-		}
-
-		rowObj := make(map[string]any, len(dataRow.Values))
-		for i, value := range dataRow.Values {
-			rowObj[w.model.Columns[i].Name] = value
-		}
-
-		rows = append(rows, rowObj)
+		payload.Rows = append(payload.Rows, dataRow.Values)
 	}
 
 	// Prepare the data payload for the request template rendering.
 	// The payload includes the model name and structured row data.
 
-	body := bodyPayload{
-		ModelName: w.model.Name,
-		Rows:      rows,
-	}
+	buffer := new(bytes.Buffer)
 
-	var buf bytes.Buffer
-
-	err := w.bodyTemplate.Execute(&buf, body)
+	err := w.bodyTemplate.Execute(buffer, payload)
 	if err != nil {
+		w.payloadPool.Put(payload)
+
 		return nil, errors.New(err.Error())
 	}
+
+	w.payloadPool.Put(payload)
 
 	// Construct the HTTP POST request with the generated JSON body and apply configured headers.
 
 	req, err := retryablehttp.NewRequest(
 		http.MethodPost,
 		w.config.Endpoint,
-		&buf,
+		buffer,
 	)
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -275,13 +280,9 @@ func (w *Writer) sendRequest(req *retryablehttp.Request) error {
 
 		return errors.New(err.Error())
 	}
-
-	if resp == nil {
-		return errors.New("received nil response")
-	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
 		return errors.New(err.Error())
 	}

@@ -158,8 +158,11 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 - `min_length`: Minimum string length. Default is `1`.
 - `max_length`: Maximum string length. Default is `32`.
 - `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
-- `template`: Template for string generation. Symbol `A` - any uppercase letter, symbol `a` - any lowercase letter,
-  symbol `0` - any digit, symbol `#` - any character. Other characters remain as-is.
+- `template`: Template for string generation. Allows you to use the values of any columns of the generated model.
+  Information about the functions available in template strings is described at the end of this section.
+  Cannot coexist with `ordered`, `distinct_percentage` and `distinct_count`.
+- `pattern`: Pattern for string generation. The `A` symbol is any capital letter, the `a` symbol is any small letter,
+  symbol `0` is any digit, the `#` symbol is any character, and the other characters remain as they are.
 - `locale`: Locale for generated strings. Supported values: `ru`, `en`. Default is `en`.
 - `without_large_letters`: Flag indicating if uppercase letters should be excluded from the string.
 - `without_small_letters`: Flag indicating if lowercase letters should be excluded from the string.
@@ -193,52 +196,65 @@ Structure `output.params` for format `http`:
 - `batch_size`: Number of data records sent in one request. Default is `1000`.
 - `workers_count`: Number of threads for writing data. Default is `1`. *Experimental field.*
 - `headers`: HTTP request headers specified as a dictionary. Default is none.
-- `format_template`: Template-based format for sending data, configured using Golang templates.  
-  Available for use in `format_template`:
-
-  - fields:
+- `format_template`: Template-based format for sending data, configured using templates.  
+  There are 3 fields available for use in `format_template`:
     * `ModelName` - name of the model.
-    * `Rows` - array of records, where each element is a dictionary representing a data row.
-      Dictionary keys correspond to column names, and values correspond to data in those columns.
-  - functions:
-    * `len` - returns the length of the given element.
-    * `json` - converts the given element to a JSON string.
-
-  Example value for the `format_template` field:
-
-  ```yaml
-  format_template: |
-    {
-      "table_name": "{{ .ModelName }}",
-      "meta": {
-        "rows_count": {{ len .Rows }}
-      },
-      "rows": [
-        {{- range $i, $row := .Rows }}
-          {{- if $i}},{{ end }}
-          {
-            "id": {{ index $row "id" }},
-            "username": "{{ index $row "name" }}"
-          }
-        {{- end }}
-      ]
-    }
-  ```
+    * `ColumnNames` - array of column names.
+    * `Rows` - a two-dimensional array, where each outer element represents a table row,
+      and the inner element contains values of this row in the same order as `ColumnNames`.
 
   Default value for the `format_template` field:
-
   ```yaml
   format_template: |
     {
       "table_name": {{ .ModelName }},
-      "rows": {{ json .Rows }}
+      "rows": {{ rowsJson .ColumnNames .Rows }}
     }
   ```
+  
+  You can read about the available functions and the use of template strings at the end of this section.
 
 Structure of `output.params` for `tcs` format:
 
 Similar to the structure for the `http` format,
 except that the `format_template` field is immutable and always set to its default value.
+
+Using Template Strings:
+
+Template strings are implemented using the standard golang library, you can read about
+all its features and available functions in this [documentation](https://pkg.go.dev/text/template).
+
+Accessing Data:
+
+In a template, data is accessed using `.`(the object or value passed to the template)
+and the field name, for example: `{{ .var }}`.
+
+Function calls:
+
+- direct call: `{{ upper .name }}`.
+- using pipe: `{{ .name | upper }}`.
+
+The following is a list of additional functions available in certain template fields:
+
+In the `template` field of `string` data type:
+
+- `upper`: converts the string to upper case.
+- `lower`: converts the string to lower case.
+
+In the `format_template` field of the output parameters:
+
+- `len`: returns the length of the element.
+- `json`: converts the element to a JSON string.
+- `rowsJson`: converts an array of column names (`ColumnNames`) and a two-dimensional array of rows (`Rows`)
+  into a JSON array whose elements are objects of the form:
+  ```
+  {
+    "columnName1": value1,
+    "columnName2": value2,
+    ...
+  }
+  ```
+  where each object corresponds to one row of the table.
 
 #### Examples of data generation configuration
 
@@ -305,9 +321,13 @@ models:
       - name: passport
         type: string
         type_params:
-          template: AA 00 000 000
+          pattern: AA 00 000 000
         distinct_percentage: 1
         ordered: true
+      - name: email
+        type: string
+        type_params:
+          template: "{{ .first_name_en | lower }}.{{ .id }}@example.com"
       - name: rating
         type: float
         type_params:
@@ -396,7 +416,7 @@ output:
         "meta": {
           "rows_count": {{ len .Rows }}
         },
-        "rows": {{ json .Rows }}
+        "rows": {{ rowsJson .ColumnNames .Rows }}
       }
 
 models:
