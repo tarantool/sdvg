@@ -19,13 +19,13 @@ const (
 	LastNameType     = "last_name"
 	PhoneType        = "phone"
 	TextType         = "text"
-	HexType          = "hex"
+	CreditCardType   = "credit_card"
 	Ipv4Type         = "ipv4"
+	IsbnType         = "isbn"
+	HexType          = "hex"
 	Base64Type       = "base64"
 	Base64URLType    = "base64_url"
 	Base64RawURLType = "base64_raw_url"
-	CreditCardType   = "credit_card"
-	IsbnType         = "isbn"
 )
 
 // Model type is used to describe model of generated data.
@@ -705,6 +705,7 @@ func (p *ColumnStringParams) Parse() error {
 	}
 
 	if p.LogicalType == CreditCardType {
+		p.LogicalType = ""
 		p.Pattern = "0000 0000 0000 0000"
 	}
 
@@ -753,17 +754,35 @@ func (p *ColumnStringParams) Validate() []error {
 		LastNameType,
 		PhoneType,
 		TextType,
-		HexType,
+		CreditCardType,
 		Ipv4Type,
+		IsbnType,
+		HexType,
 		Base64Type,
 		Base64URLType,
 		Base64RawURLType,
-		CreditCardType,
-		IsbnType,
 	}
 
 	if !slices.Contains(logicalTypes, p.LogicalType) {
 		errs = append(errs, errors.Errorf("unknown logical type: %s", p.LogicalType))
+	}
+
+	if p.LogicalType == Base64Type || p.LogicalType == Base64URLType {
+		if p.MinLength%4 != 0 || p.MaxLength%4 != 0 {
+			errs = append(errs, errors.Errorf(
+				"min length (%v) and max length (%v) fields should be multiple of 4 for %q logical type",
+				p.MinLength, p.MaxLength, p.LogicalType,
+			))
+		}
+	}
+
+	if p.LogicalType == HexType {
+		if p.MinLength%2 != 0 || p.MaxLength%2 != 0 {
+			errs = append(errs, errors.Errorf(
+				"min length (%v) and max length (%v) fields should be multiple of 2 for %q logical type",
+				p.MinLength, p.MaxLength, p.LogicalType,
+			))
+		}
 	}
 
 	return errs

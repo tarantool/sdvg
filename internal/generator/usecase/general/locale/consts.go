@@ -7,7 +7,7 @@ var (
 	SpecialChars     = []rune("!#$%&()*+,-.:;<=>?@_{|}")
 	Base64Charset    = []rune("+/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 	Base64URLCharset = []rune("-_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-	HexCharset       = []rune("0123456789abcdefABCDEF")
+	HexCharset       = []rune("0123456789ABCDEF")
 )
 
 // Genders declaration.

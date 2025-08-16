@@ -39,7 +39,6 @@ type StringGenerator struct {
 	lexOrderedOctets []string // precomputed lexicographically ordered IPv4 octets
 	powersOfTen      []uint64 // precomputed powers of ten for ISBN generation
 	base64Endings    []string // precomputed Base64 endings
-	base64URLEndings []string
 }
 
 //nolint:cyclop
@@ -169,10 +168,8 @@ func (g *StringGenerator) prepareLogicalType() error {
 	case models.IsbnType:
 		g.calculatePowersOfTen()
 
-	case models.Base64Type:
+	case models.Base64Type, models.Base64URLType:
 		g.generateBase64SortedEndings()
-	case models.Base64URLType:
-		g.generateBase64URLSortedEndings()
 	}
 
 	return nil
@@ -210,8 +207,8 @@ func (g *StringGenerator) SetTotalCount(totalValuesCount uint64) error {
 				currentLengthCount = rangeCount
 
 				remainAllowed := 0
-				for x := length + 1; x <= g.MaxLength; x++ {
-					if allowedLength(x) {
+				for candidateLength := length + 1; candidateLength <= g.MaxLength; candidateLength++ {
+					if allowedLength(candidateLength) {
 						remainAllowed++
 					}
 				}
@@ -255,13 +252,18 @@ func (g *StringGenerator) SetTotalCount(totalValuesCount uint64) error {
 
 func (g *StringGenerator) lexicographicRules() (int, func(int) bool, func(int) int) {
 	var (
-		allowedLength func(length int) bool
-		prefixLength  func(length int) int
-		tailCount     int
+		tailCount     = 1
+		allowedLength = func(length int) bool {
+			return true
+		}
+		prefixLength = func(length int) int {
+			return length
+		}
 	)
 
 	switch g.LogicalType {
 	case models.Base64Type, models.Base64URLType:
+		tailCount = 4161
 		allowedLength = func(length int) bool {
 			return length >= 4 && length%4 == 0
 		}
@@ -274,40 +276,10 @@ func (g *StringGenerator) lexicographicRules() (int, func(int) bool, func(int) i
 			return length - 2
 		}
 
-		tailCount = 4161
-
-	case models.Base64RawURLType:
-		allowedLength = func(length int) bool {
-			return true
-		}
-
-		prefixLength = func(length int) int {
-			return length
-		}
-
-		tailCount = 4096
-
 	case models.HexType:
 		allowedLength = func(length int) bool {
 			return length >= 2 && length%2 == 0
 		}
-
-		prefixLength = func(length int) int {
-			return length
-		}
-
-		tailCount = 1
-
-	default:
-		allowedLength = func(length int) bool {
-			return true
-		}
-
-		prefixLength = func(length int) int {
-			return length
-		}
-
-		tailCount = 1
 	}
 
 	return tailCount, allowedLength, prefixLength
@@ -376,10 +348,13 @@ func (g *StringGenerator) calculatePowersOfTen() {
 }
 
 func (g *StringGenerator) generateBase64SortedEndings() {
-	baseAll := []rune("+/0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+	alphabet := make([]rune, len(g.charset)+1)
+	copy(alphabet, g.charset)
+	alphabet[len(g.charset)] = '='
+	slices.Sort(alphabet)
 
 	eqIndex := -1
-	for i, r := range baseAll {
+	for i, r := range alphabet {
 		if r == '=' {
 			eqIndex = i
 			break
@@ -389,46 +364,18 @@ func (g *StringGenerator) generateBase64SortedEndings() {
 		panic("'=' not found in base64 alphabet")
 	}
 
-	charsetLength := len(baseAll)
+	charsetLength := len(alphabet)
 	g.base64Endings = make([]string, 0, 4161)
 
 	for i := 0; i < charsetLength; i++ {
 		for j := 0; j < charsetLength; j++ {
-			if i < eqIndex || (baseAll[i] == '=' && baseAll[j] == '=') || i > eqIndex {
-				g.base64Endings = append(g.base64Endings, string([]rune{baseAll[i], baseAll[j]}))
+			if i < eqIndex || (alphabet[i] == '=' && alphabet[j] == '=') || i > eqIndex {
+				g.base64Endings = append(g.base64Endings, string([]rune{alphabet[i], alphabet[j]}))
 			}
 		}
 	}
 
 	sort.Strings(g.base64Endings)
-}
-
-func (g *StringGenerator) generateBase64URLSortedEndings() {
-	baseAll := []rune("-_0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-
-	eqIndex := -1
-	for i, r := range baseAll {
-		if r == '=' {
-			eqIndex = i
-			break
-		}
-	}
-	if eqIndex == -1 {
-		panic("'=' not found in base64 alphabet")
-	}
-
-	charsetLength := len(baseAll)
-	g.base64URLEndings = make([]string, 0, 4161)
-
-	for i := 0; i < charsetLength; i++ {
-		for j := 0; j < charsetLength; j++ {
-			if i < eqIndex || (baseAll[i] == '=' && baseAll[j] == '=') || i > eqIndex {
-				g.base64URLEndings = append(g.base64URLEndings, string([]rune{baseAll[i], baseAll[j]}))
-			}
-		}
-	}
-
-	sort.Strings(g.base64URLEndings)
 }
 
 // templateString returns n-th string by template.
@@ -619,37 +566,6 @@ func (g *StringGenerator) ipv4(number float64) string {
 	)
 }
 
-func (g *StringGenerator) hex(number float64) string {
-	prefix := make([]rune, 0, g.MaxLength)
-
-	var prefixLen int
-	for remain := number; ; {
-		prefixLen = len(prefix)
-
-		remain -= g.countByPrefix[prefixLen]
-		if remain < 0 || g.sumByPrefix[prefixLen+1] == 0 {
-			break
-		}
-
-		step := g.sumByPrefix[prefixLen+1]
-		i := int(remain / step)
-		if i >= len(g.charset) {
-			i = len(g.charset) - 1
-		}
-		remain -= step * float64(i)
-		prefix = append(prefix, g.charset[i])
-	}
-
-	if prefixLen < g.MinLength {
-		destLen := g.MinLength + int(number)%(g.MaxLength-g.MinLength+1)
-		for i := 0; i < destLen-prefixLen; i++ {
-			prefix = append(prefix, g.charset[(int(number)+i*i)%len(g.charset)])
-		}
-	}
-
-	return string(prefix)
-}
-
 // isbn generates lexicographically ordered ISBN-13 strings (with prefix "978" or "979").
 // The ordering is determined by the input `number` which maps proportionally to the total ISBN space.
 //
@@ -782,89 +698,40 @@ func (g *StringGenerator) isbn(number float64) string {
 func (g *StringGenerator) base64(number float64) string {
 	prefix := make([]rune, 0, g.MaxLength)
 
-	for remain := number; ; {
-		p := len(prefix)
+	var (
+		remain    float64
+		prefixLen int
+	)
 
-		// bucket: "finish now" at prefix length p (для Base64 это L = p+2)
-		remain -= g.countByPrefix[p]
-		if remain < 0 || g.sumByPrefix[p+1] == 0 {
-			// распределяем remain пропорционально в хвосты
-			posInBucket := remain + g.countByPrefix[p] // 0 .. countByPrefix[p]
-			idx := int(posInBucket / g.countByPrefix[p] * float64(len(g.base64Endings)))
+	for remain = number; ; {
+		prefixLen = len(prefix)
 
-			if idx < 0 {
-				idx = 0
-			}
-			if idx >= len(g.base64Endings) {
-				idx = len(g.base64Endings) - 1
-			}
-
-			return string(prefix) + g.base64Endings[idx]
-		}
-
-		// выбираем следующую руну для префикса
-		step := g.sumByPrefix[p+1]
-		i := int(remain / step)
-		if i >= len(g.charset) {
-			i = len(g.charset) - 1
-		}
-		remain -= step * float64(i)
-		prefix = append(prefix, g.charset[i])
-	}
-}
-
-func (g *StringGenerator) base64URL(number float64) string {
-	prefix := make([]rune, 0, g.MaxLength)
-
-	for remain := number; ; {
-		p := len(prefix)
-
-		remain -= g.countByPrefix[p]
-		if remain < 0 || g.sumByPrefix[p+1] == 0 {
-			posInBucket := remain + g.countByPrefix[p]
-			idx := int(posInBucket / g.countByPrefix[p] * float64(len(g.base64URLEndings)))
-
-			if idx < 0 {
-				idx = 0
-			}
-			if idx >= len(g.base64URLEndings) {
-				idx = len(g.base64URLEndings) - 1
-			}
-
-			return string(prefix) + g.base64URLEndings[idx]
-		}
-
-		step := g.sumByPrefix[p+1]
-		i := int(remain / step)
-		if i >= len(g.charset) {
-			i = len(g.charset) - 1
-		}
-		remain -= step * float64(i)
-		prefix = append(prefix, g.charset[i])
-	}
-}
-
-func (g *StringGenerator) base64RawURL(number float64) string {
-	prefix := make([]rune, 0, g.MaxLength)
-
-	for remain := number; ; {
-		p := len(prefix)
-
-		remain -= g.countByPrefix[p]
-		if remain < 0 || g.sumByPrefix[p+1] == 0 {
+		remain -= g.countByPrefix[prefixLen]
+		if remain < 0 || g.sumByPrefix[prefixLen+1] == 0 {
 			break
 		}
 
-		step := g.sumByPrefix[p+1]
-		i := int(remain / step)
-		if i >= len(g.charset) {
-			i = len(g.charset) - 1
-		}
-		remain -= step * float64(i)
+		i := int(remain / g.sumByPrefix[prefixLen+1])
+		remain -= g.sumByPrefix[prefixLen+1] * float64(i)
 		prefix = append(prefix, g.charset[i])
 	}
 
-	return string(prefix)
+	pos := remain + g.countByPrefix[prefixLen]
+	idx := int(pos / g.countByPrefix[prefixLen] * float64(len(g.base64Endings)))
+
+	return string(prefix) + g.base64Endings[idx]
+}
+
+func (g *StringGenerator) base64URL(number float64) string {
+	return g.base64(number)
+}
+
+func (g *StringGenerator) base64RawURL(number float64) string {
+	return g.simpleString(number)
+}
+
+func (g *StringGenerator) hex(number float64) string {
+	return g.simpleString(number)
 }
 
 // simpleString generates a lexicographically ordered string based on the given number.
@@ -1054,18 +921,6 @@ func (g *StringGenerator) ValuesCount() float64 {
 
 		return totalCount
 
-	case models.HexType:
-		total := float64(0)
-		for length := g.MinLength; length <= g.MaxLength; length++ {
-			if length%2 != 0 {
-				continue
-			}
-
-			total += math.Pow(16, float64(length))
-		}
-
-		return total
-
 	case models.Ipv4Type:
 		// IPv4: 32-bit address space, total unique addresses = 2^32.
 		// +1 because MaxUint32 is 2^32 - 1.
@@ -1087,19 +942,20 @@ func (g *StringGenerator) ValuesCount() float64 {
 		//   Total endings per prefix = 4096 + 64 + 1 = 4161.
 		total := float64(0)
 		for length := g.MinLength; length <= g.MaxLength; length += 4 {
-			total += math.Pow(64, float64(length-2)) * 4161
+			total += math.Pow(float64(len(g.charset)), float64(length-2)) * 4161
 		}
 
 		return total
 
-	case models.Base64RawURLType:
+	case models.HexType:
 		total := float64(0)
-		for length := g.MinLength; length <= g.MaxLength; length++ {
-			total += math.Pow(64, float64(length))
+		for length := g.MinLength; length <= g.MaxLength; length += 2 {
+			total += math.Pow(float64(len(g.charset)), float64(length))
 		}
+
 		return total
 
-	case models.SimpleStringType:
+	case models.SimpleStringType, models.Base64RawURLType:
 		total := float64(0)
 		for length := g.MinLength; length <= g.MaxLength; length++ {
 			total += math.Pow(float64(len(g.charset)), float64(length))
