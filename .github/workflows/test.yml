@@ -71,6 +71,9 @@ jobs:
       BENCH_MASTER_SHA_FILE_PATH: "bench-master-info/benchmark-master-sha.txt"
     container:
       image: "ghcr.io/tarantool/sdvg-ci:0.0.2"
+    permissions:
+      pull-requests: "write"
+      packages: "read"
 
     steps:
       - uses: "actions/checkout@v4"
