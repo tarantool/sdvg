@@ -14,6 +14,9 @@ import (
 	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	outputGeneral "github.com/tarantool/sdvg/internal/generator/output/general"
+	"github.com/tarantool/sdvg/internal/generator/output/general/writer"
+	outputCsv "github.com/tarantool/sdvg/internal/generator/output/general/writer/csv"
+	outputParquet "github.com/tarantool/sdvg/internal/generator/output/general/writer/parquet"
 	"github.com/tarantool/sdvg/internal/generator/usecase"
 	useCaseGeneral "github.com/tarantool/sdvg/internal/generator/usecase/general"
 )
@@ -260,6 +263,57 @@ cause: dir for model is not empty
 			}
 
 			require.NoError(t, os.RemoveAll(models.DefaultOutputDir))
+		})
+	}
+}
+
+// TestWriterInitTeardown tests if Teardown works properly right after Init.
+func TestWriterInitTeardown(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	testCases := []struct {
+		name   string
+		writer writer.Writer
+	}{
+		{
+			"csv",
+			outputCsv.NewWriter(
+				context.TODO(),
+				nil,
+				&models.CSVConfig{
+					FloatPrecision: 1,
+					DatetimeFormat: "2006-01-02T15:04:05Z07:00",
+					Delimiter:      ",",
+					WithoutHeaders: false,
+				},
+				nil,
+				tmpDir,
+				false,
+				make(chan<- uint64),
+			),
+		},
+		{
+			"parquet",
+			outputParquet.NewWriter(
+				&models.Model{Columns: make([]*models.Column, 0)},
+				&models.ParquetConfig{
+					CompressionCodec: "UNCOMPRESSED",
+					FloatPrecision:   2,
+					DateTimeFormat:   models.ParquetDateTimeMillisFormat,
+				},
+				nil,
+				outputParquet.NewFileSystem(),
+				tmpDir,
+				false,
+				make(chan<- uint64),
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, tc.writer.Init())
+			require.NoError(t, tc.writer.Teardown())
 		})
 	}
 }
