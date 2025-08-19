@@ -28,6 +28,9 @@ import (
 
 const (
 	flushInterval = 5 * time.Second
+	//nolint:godox
+	// TODO: find optimal value, or calculate it to flush on disk 512Mb data
+	recordBuilderReserve = 5000
 )
 
 var (
@@ -68,7 +71,10 @@ type Writer struct {
 	parquetWriter      *pqarrow.FileWriter
 	writerProperties   *parquet.WriterProperties
 	recordBuilder      *array.RecordBuilder
-	flushTicker        *time.Ticker
+
+	flushTicker   *time.Ticker
+	flushWg       *sync.WaitGroup
+	flushStopChan chan struct{}
 
 	totalWrittenRows uint64
 	bufferedRows     uint64
@@ -77,7 +83,6 @@ type Writer struct {
 	errorChan   chan error
 	writerMutex *sync.Mutex
 	started     bool
-	stopCh      chan struct{}
 }
 
 type FileSystem interface {
@@ -106,11 +111,12 @@ func NewWriter(
 		continueGeneration: continueGeneration,
 		fs:                 fs,
 		flushTicker:        time.NewTicker(flushInterval),
+		flushWg:            &sync.WaitGroup{},
+		flushStopChan:      make(chan struct{}),
 		writtenRowsChan:    writtenRowsChan,
 		errorChan:          make(chan error),
 		writerMutex:        &sync.Mutex{},
 		started:            false,
-		stopCh:             make(chan struct{}),
 	}
 }
 
@@ -273,10 +279,9 @@ func (w *Writer) Init() error {
 
 	w.parquetModelSchema = modelSchema
 	w.writerProperties = parquet.NewWriterProperties(writerProperties...)
+
 	w.recordBuilder = array.NewRecordBuilder(memory.DefaultAllocator, w.parquetModelSchema)
-	//nolint:mnd,godox
-	// TODO: find optimal value, or calculate it to flush on disk 512Mb data
-	w.recordBuilder.Reserve(5000)
+	w.recordBuilder.Reserve(recordBuilderReserve)
 
 	if err = os.MkdirAll(w.outputPath, os.ModePerm); err != nil {
 		return errors.New(err.Error())
@@ -301,7 +306,7 @@ func (w *Writer) Init() error {
 func (w *Writer) flusher() {
 	for {
 		select {
-		case <-w.stopCh:
+		case <-w.flushStopChan:
 			return
 		case <-w.flushTicker.C:
 			//nolint:godox
@@ -661,14 +666,22 @@ func (w *Writer) WriteRow(row *models.DataRow) error {
 // Teardown function waits recording finish and stops parquet writer and closes opened file descriptor.
 func (w *Writer) Teardown() error {
 	w.flushTicker.Stop()
-	w.stopCh <- struct{}{}
+	w.flushStopChan <- struct{}{}
+	w.flushWg.Wait()
 
-	if err := w.flush(); err != nil {
-		return errors.New(err.Error())
+	w.writerMutex.Lock()
+	if w.recordBuilder != nil && w.parquetWriter != nil {
+		w.writerMutex.Unlock()
+		if err := w.flush(); err != nil {
+			return errors.New(err.Error())
+		}
 	}
 
-	if err := w.parquetWriter.Close(); err != nil {
-		return errors.New(err.Error())
+	w.writerMutex.TryLock()
+	if w.parquetWriter != nil {
+		if err := w.parquetWriter.Close(); err != nil {
+			return errors.New(err.Error())
+		}
 	}
 
 	select {

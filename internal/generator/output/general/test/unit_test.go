@@ -296,7 +296,7 @@ func TestWriterInitTeardown(t *testing.T) {
 		{
 			"parquet",
 			outputParquet.NewWriter(
-				nil,
+				&models.Model{Columns: make([]*models.Column, 0)},
 				&models.ParquetConfig{
 					"UNCOMPRESSED",
 					2,
