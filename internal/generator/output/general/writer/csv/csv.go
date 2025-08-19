@@ -435,16 +435,11 @@ func (w *Writer) Teardown() error {
 	close(w.flushStopChan)
 	w.flushWg.Wait()
 
-	w.writerMutex.Lock()
 	if w.csvWriter != nil {
-		w.writerMutex.Unlock()
-
 		if err := w.flush(); err != nil {
 			return err
 		}
 	}
-
-	w.writerMutex.TryLock()
 
 	if w.fileDescriptor != nil {
 		if err := w.fileDescriptor.Close(); err != nil {
