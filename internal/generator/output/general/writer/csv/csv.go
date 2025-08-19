@@ -41,6 +41,8 @@ type Writer struct {
 	fileDescriptor *os.File
 	csvWriter      *stdCSV.Writer
 	flushTicker    *time.Ticker
+	flushWg        *sync.WaitGroup
+	flushStopChan  chan struct{}
 
 	totalWrittenRows uint64
 	bufferedRows     uint64
@@ -51,7 +53,6 @@ type Writer struct {
 	writerWg    *sync.WaitGroup
 	writerMutex *sync.Mutex
 	started     bool
-	stopChan    chan struct{}
 }
 
 // NewWriter function creates Writer object.
@@ -72,13 +73,14 @@ func NewWriter(
 		outputPath:         outputPath,
 		continueGeneration: continueGeneration,
 		flushTicker:        time.NewTicker(flushInterval),
+		flushWg:            &sync.WaitGroup{},
+		flushStopChan:      make(chan struct{}),
 		writtenRowsChan:    writtenRowsChan,
 		writerChan:         make(chan *models.DataRow),
 		errorsChan:         make(chan error, 1),
 		writerWg:           &sync.WaitGroup{},
 		writerMutex:        &sync.Mutex{},
 		started:            false,
-		stopChan:           make(chan struct{}),
 	}
 }
 
@@ -104,6 +106,7 @@ func (w *Writer) Init() error {
 
 	w.started = true
 	w.writerWg.Add(1)
+	w.flushWg.Add(1)
 
 	go w.writer()
 	go w.flusher()
@@ -142,9 +145,11 @@ func (w *Writer) writer() {
 }
 
 func (w *Writer) flusher() {
+	defer w.flushWg.Done()
+
 	for {
 		select {
-		case <-w.stopChan:
+		case <-w.flushStopChan:
 			return
 		case <-w.flushTicker.C:
 			if w.csvWriter != nil {
@@ -427,14 +432,21 @@ func (w *Writer) Teardown() error {
 	w.writerWg.Wait()
 
 	w.flushTicker.Stop()
-	w.stopChan <- struct{}{}
+	close(w.flushStopChan)
+	w.flushWg.Wait()
 
-	if err := w.flush(); err != nil {
-		return err
+	w.writerMutex.Lock()
+	defer w.writerMutex.Unlock()
+	if w.csvWriter != nil {
+		if err := w.flush(); err != nil {
+			return err
+		}
 	}
 
-	if err := w.fileDescriptor.Close(); err != nil {
-		return errors.New(err.Error())
+	if w.fileDescriptor != nil {
+		if err := w.fileDescriptor.Close(); err != nil {
+			return errors.New(err.Error())
+		}
 	}
 
 	select {
