@@ -29,7 +29,7 @@ import (
 const (
 	flushInterval = 5 * time.Second
 	//nolint:godox
-	// TODO: find optimal value, or calculate it to flush on disk 512Mb data
+	// TODO: find optimal value, or calculate it to flush on disk 512Mb data.
 	recordBuilderReserve = 5000
 )
 
@@ -672,12 +672,14 @@ func (w *Writer) Teardown() error {
 	w.writerMutex.Lock()
 	if w.recordBuilder != nil && w.parquetWriter != nil {
 		w.writerMutex.Unlock()
+
 		if err := w.flush(); err != nil {
 			return errors.New(err.Error())
 		}
 	}
 
 	w.writerMutex.TryLock()
+
 	if w.parquetWriter != nil {
 		if err := w.parquetWriter.Close(); err != nil {
 			return errors.New(err.Error())

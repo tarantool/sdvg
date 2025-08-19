@@ -267,7 +267,7 @@ cause: dir for model is not empty
 	}
 }
 
-// TestWriterInitTeardown tests if Teardown works properly right after Init
+// TestWriterInitTeardown tests if Teardown works properly right after Init.
 func TestWriterInitTeardown(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -280,7 +280,6 @@ func TestWriterInitTeardown(t *testing.T) {
 			outputCsv.NewWriter(
 				context.TODO(),
 				nil,
-				//w.config.CSVParams,
 				&models.CSVConfig{
 					FloatPrecision: 1,
 					DatetimeFormat: "2006-01-02T15:04:05Z07:00",
@@ -298,9 +297,9 @@ func TestWriterInitTeardown(t *testing.T) {
 			outputParquet.NewWriter(
 				&models.Model{Columns: make([]*models.Column, 0)},
 				&models.ParquetConfig{
-					"UNCOMPRESSED",
-					2,
-					models.ParquetDateTimeMillisFormat,
+					CompressionCodec: "UNCOMPRESSED",
+					FloatPrecision:   2,
+					DateTimeFormat:   models.ParquetDateTimeMillisFormat,
 				},
 				nil,
 				outputParquet.NewFileSystem(),
