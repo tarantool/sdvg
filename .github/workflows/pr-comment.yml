@@ -1,0 +1,49 @@
+name: "Comment PR"
+run-name: "${{ format('Comment PR #{0}', github.event.pull_request.number) }}"
+
+on:
+  pull_request_target:
+
+permissions:
+  pull-requests: "write"
+  contents: "read"
+
+env:
+  GIT_CONFIG_GLOBAL: "/root/.gitconfig" # fix path in container (https://github.com/actions/runner/issues/2033)
+
+jobs:
+
+  perf-report:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Wait for performance job to succeed"
+        uses: "fountainhead/action-wait-for-check@v1.2.0"
+        id: "wait-for-perf"
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: "test / performance"
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - if: steps.wait-for-perf.outputs.conclusion != 'success'
+        run: |
+          echo "Perf tests job failed, stopping workflow."
+          exit 1
+
+      - name: "Download benchmark report"
+        uses: "dawidd6/action-download-artifact@v11"
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          commit: "${{ github.event.pull_request.head.sha }}"
+          if_no_artifact_found: "fail"
+          workflow: "ci.yml"
+          workflow_conclusion: "" # to ignore status or conclusion in the search
+          allow_forks: true # searching artifact in forks
+          name: "perf-report"
+          path: "./"
+
+      - uses: "mshick/add-pr-comment@v2"
+        with:
+          message-path: "performance-report.md"
+          message-id: "perf-report-pr-${{ github.event.pull_request.number }}"
+          refresh-message-position: true
