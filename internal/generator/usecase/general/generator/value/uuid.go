@@ -25,7 +25,7 @@ func (g *UUIDGenerator) SetTotalCount(totalValuesCount uint64) error {
 }
 
 // Value returns n-th UUID from range.
-func (g *UUIDGenerator) Value(number float64) (any, error) {
+func (g *UUIDGenerator) Value(number float64, _ map[string]any) (any, error) {
 	res := uuid.UUID{}
 	index := number / float64(g.totalValuesCount)
 

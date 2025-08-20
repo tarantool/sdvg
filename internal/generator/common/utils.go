@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/otaviokr/topological-sort/toposort"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -356,4 +358,60 @@ func CtxClosed(ctx context.Context) bool {
 	default:
 		return false
 	}
+}
+
+func ExtractValuesFromTemplate(template string) []string {
+	// regexp for templates like {{ .name }}
+	reField := regexp.MustCompile(`{{\s*(?:\w+\s+)?\.([^\s"|}]+).*?}}`)
+	matchesField := reField.FindAllStringSubmatch(template, -1)
+
+	// regexp for templates like {{ index . "name-with-specific-symbols" }}
+	reMapKey := regexp.MustCompile(`{{\s*index\s+\.\s+"([^"]+)".*?}}`)
+	matchesMapKeys := reMapKey.FindAllStringSubmatch(template, -1)
+
+	values := make([]string, 0, len(matchesField)+len(matchesMapKeys))
+
+	for _, match := range matchesField {
+		values = append(values, match[1])
+	}
+
+	for _, match := range matchesMapKeys {
+		values = append(values, match[1])
+	}
+
+	return values
+}
+
+// TopologicalSort sorts the given items in topological order using the provided
+// function to extract node name and dependencies.
+// Returns the sorted node names, a flag indicating if any dependencies exist,
+// and an error if a cycle is detected.
+func TopologicalSort[T any](items []T, nodeFunc func(T) (string, []string)) ([]string, bool, error) {
+	var (
+		graph           = make(map[string][]string, len(items))
+		sortedVertexes  = make([]string, len(items))
+		hasDependencies bool
+		err             error
+	)
+
+	for i, item := range items {
+		name, dependencies := nodeFunc(item)
+		if len(dependencies) > 0 {
+			hasDependencies = true
+		}
+
+		sortedVertexes[i] = name
+		graph[name] = dependencies
+	}
+
+	if !hasDependencies {
+		return sortedVertexes, false, nil
+	}
+
+	sortedVertexes, err = toposort.ReverseTarjan(graph)
+	if err != nil {
+		return nil, false, errors.New(err.Error())
+	}
+
+	return sortedVertexes, hasDependencies, nil
 }

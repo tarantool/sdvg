@@ -14,10 +14,18 @@ import (
 )
 
 const (
-	FirstNameType = "first_name"
-	LastNameType  = "last_name"
-	PhoneType     = "phone"
-	TextType      = "text"
+	SimpleStringType = "simple_string"
+	FirstNameType    = "first_name"
+	LastNameType     = "last_name"
+	PhoneType        = "phone"
+	TextType         = "text"
+	CreditCardType   = "credit_card"
+	Ipv4Type         = "ipv4"
+	Isbn13Type       = "isbn13"
+	HexType          = "hex"
+	Base64Type       = "base64"
+	Base64URLType    = "base64_url"
+	Base64RawURLType = "base64_raw_url"
 )
 
 // Model type is used to describe model of generated data.
@@ -426,6 +434,16 @@ func (p *Params) Validate() []error {
 		errs = append(errs, datetimeParamsErrs...)
 	}
 
+	if p.StringParams != nil && p.StringParams.Template != "" {
+		if p.Ordered {
+			errs = append(errs, errors.New("forbidden to use string template with ordered"))
+		}
+
+		if common.Any(p.DistinctPercentage != 0, p.DistinctCount != 0) {
+			errs = append(errs, errors.New("forbidden to use string template with distinct params"))
+		}
+	}
+
 	// must be called only after parsing, filling defaults and validation of TypeParams.
 	if p.Values != nil {
 		if err := p.PostProcess(); err != nil {
@@ -674,13 +692,25 @@ type ColumnStringParams struct {
 	Locale              string `backup:"true" json:"locale"                yaml:"locale"`
 	LogicalType         string `backup:"true" json:"logical_type"          yaml:"logical_type"`
 	Template            string `backup:"true" json:"template"              yaml:"template"`
+	Pattern             string `backup:"true" json:"pattern"               yaml:"pattern"`
 	WithoutLargeLetters bool   `backup:"true" json:"without_large_letters" yaml:"without_large_letters"`
 	WithoutSmallLetters bool   `backup:"true" json:"without_small_letters" yaml:"without_small_letters"`
 	WithoutNumbers      bool   `backup:"true" json:"without_numbers"       yaml:"without_numbers"`
 	WithoutSpecialChars bool   `backup:"true" json:"without_special_chars" yaml:"without_special_chars"`
 }
 
-func (p *ColumnStringParams) Parse() error { return nil }
+func (p *ColumnStringParams) Parse() error {
+	if p.LogicalType == "" && p.Template == "" && p.Pattern == "" {
+		p.LogicalType = SimpleStringType
+	}
+
+	if p.LogicalType == CreditCardType {
+		p.LogicalType = ""
+		p.Pattern = "0000 0000 0000 0000"
+	}
+
+	return nil
+}
 
 func (p *ColumnStringParams) FillDefaults() {
 	if p.MinLength == 0 {
@@ -700,8 +730,13 @@ func (p *ColumnStringParams) FillDefaults() {
 	p.LogicalType = strings.ToLower(p.LogicalType)
 }
 
+//nolint:cyclop
 func (p *ColumnStringParams) Validate() []error {
 	var errs []error
+
+	if p.Template != "" && p.Pattern != "" {
+		errs = append(errs, errors.Errorf("forbidden to use template and pattern at the same time"))
+	}
 
 	if p.MinLength > p.MaxLength {
 		errs = append(errs, errors.Errorf(
@@ -714,8 +749,42 @@ func (p *ColumnStringParams) Validate() []error {
 		errs = append(errs, errors.Errorf("unknown locale: %s", p.Locale))
 	}
 
-	if !slices.Contains([]string{"", FirstNameType, LastNameType, PhoneType, TextType}, p.LogicalType) {
+	logicalTypes := []string{
+		"",
+		SimpleStringType,
+		FirstNameType,
+		LastNameType,
+		PhoneType,
+		TextType,
+		CreditCardType,
+		Ipv4Type,
+		Isbn13Type,
+		HexType,
+		Base64Type,
+		Base64URLType,
+		Base64RawURLType,
+	}
+
+	if !slices.Contains(logicalTypes, p.LogicalType) {
 		errs = append(errs, errors.Errorf("unknown logical type: %s", p.LogicalType))
+	}
+
+	if p.LogicalType == Base64Type || p.LogicalType == Base64URLType {
+		if p.MinLength%4 != 0 || p.MaxLength%4 != 0 {
+			errs = append(errs, errors.Errorf(
+				"min length (%v) and max length (%v) fields should be multiple of 4 for %q logical type",
+				p.MinLength, p.MaxLength, p.LogicalType,
+			))
+		}
+	}
+
+	if p.LogicalType == HexType {
+		if p.MinLength%2 != 0 || p.MaxLength%2 != 0 {
+			errs = append(errs, errors.Errorf(
+				"min length (%v) and max length (%v) fields should be multiple of 2 for %q logical type",
+				p.MinLength, p.MaxLength, p.LogicalType,
+			))
+		}
 	}
 
 	return errs
