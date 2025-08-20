@@ -489,20 +489,31 @@ func TestString(t *testing.T) {
 		{&models.ColumnStringParams{LogicalType: models.FirstNameType, Locale: "ru"}, 1, 32},
 		{&models.ColumnStringParams{LogicalType: models.LastNameType, Locale: "ru"}, 1, 32},
 		{&models.ColumnStringParams{LogicalType: models.PhoneType, Locale: "ru"}, 1, 32},
-		{&models.ColumnStringParams{MinLength: 5, MaxLength: 5}, 5, 5},
 		{&models.ColumnStringParams{LogicalType: models.FirstNameType, MinLength: 5, MaxLength: 5}, 5, 5},
 		{&models.ColumnStringParams{LogicalType: models.LastNameType, MinLength: 4, MaxLength: 7}, 4, 7},
 		{&models.ColumnStringParams{LogicalType: models.PhoneType, MinLength: 10, MaxLength: 10}, 10, 10},
-		{&models.ColumnStringParams{MinLength: 100, MaxLength: 100}, 100, 100},
-		{&models.ColumnStringParams{Pattern: "AAaa00##", Locale: "en"}, 8, 8},
-		{&models.ColumnStringParams{Pattern: "AAaa00##", Locale: "ru"}, 8, 8},
-		{&models.ColumnStringParams{Pattern: "0123456789012345678901234567890123456789"}, 40, 40},
+		{&models.ColumnStringParams{LogicalType: models.SimpleStringType, MinLength: 5, MaxLength: 5}, 5, 5},
+		{&models.ColumnStringParams{LogicalType: models.SimpleStringType, MinLength: 100, MaxLength: 100}, 100, 100},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 3, MaxLength: 5}, 3, 5},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512}, 510, 512},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 3, MaxLength: 5, Locale: "ru"}, 3, 5},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256, Locale: "ru"}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512, Locale: "ru"}, 510, 512},
+		{&models.ColumnStringParams{LogicalType: models.CreditCardType}, 19, 19},
+		{&models.ColumnStringParams{LogicalType: models.IsbnType}, 17, 17},
+		{&models.ColumnStringParams{LogicalType: models.Ipv4Type}, 7, 15},
+		{&models.ColumnStringParams{LogicalType: models.HexType, MinLength: 2, MaxLength: 10}, 2, 10},
+		{&models.ColumnStringParams{LogicalType: models.HexType, MinLength: 4, MaxLength: 4}, 4, 4},
+		{&models.ColumnStringParams{LogicalType: models.Base64Type, MinLength: 4, MaxLength: 16}, 4, 8},
+		{&models.ColumnStringParams{LogicalType: models.Base64Type, MinLength: 4, MaxLength: 4}, 4, 4},
+		{&models.ColumnStringParams{LogicalType: models.Base64URLType, MinLength: 4, MaxLength: 20}, 4, 20},
+		{&models.ColumnStringParams{LogicalType: models.Base64URLType, MinLength: 4, MaxLength: 4}, 4, 4},
+		{&models.ColumnStringParams{LogicalType: models.Base64RawURLType, MinLength: 2, MaxLength: 10}, 2, 10},
+		{&models.ColumnStringParams{LogicalType: models.Base64RawURLType, MinLength: 5, MaxLength: 5}, 5, 5},
+		{&models.ColumnStringParams{Pattern: "AAaa00##", Locale: "en"}, 8, 8},
+		{&models.ColumnStringParams{Pattern: "AAaa00##", Locale: "ru"}, 8, 8},
+		{&models.ColumnStringParams{Pattern: "0123456789012345678901234567890123456789"}, 40, 40},
 	}
 
 	for _, testCase := range testCases {
@@ -531,6 +542,7 @@ func TestString(t *testing.T) {
 	}{
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           1,
 				MaxLength:           1,
 				Locale:              "en",
@@ -541,6 +553,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           1,
 				MaxLength:           1,
 				Locale:              "ru",
@@ -551,6 +564,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           3,
 				MaxLength:           7,
 				Locale:              "en",
@@ -561,6 +575,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           2,
 				MaxLength:           9,
 				Locale:              "ru",
@@ -571,6 +586,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           10,
 				MaxLength:           24,
 				Locale:              "en",
@@ -582,6 +598,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
+				LogicalType:         models.SimpleStringType,
 				MinLength:           1,
 				MaxLength:           8,
 				Locale:              "en",
@@ -593,17 +610,19 @@ func TestString(t *testing.T) {
 		},
 		{
 			&models.ColumnStringParams{
-				MinLength: 10,
-				MaxLength: 15,
-				Locale:    "en",
+				LogicalType: models.SimpleStringType,
+				MinLength:   10,
+				MaxLength:   15,
+				Locale:      "en",
 			},
 			88394150280794134360488281250,
 		},
 		{
 			&models.ColumnStringParams{
-				MinLength: 10,
-				MaxLength: 15,
-				Locale:    "ru",
+				LogicalType: models.SimpleStringType,
+				MinLength:   10,
+				MaxLength:   15,
+				Locale:      "ru",
 			},
 			868834460299970670989801640300,
 		},
@@ -620,6 +639,63 @@ func TestString(t *testing.T) {
 				Pattern: "A00",
 			},
 			2600,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:  "en",
+				Pattern: "0000 0000 0000 0000",
+			},
+			10000000000000000,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.Ipv4Type,
+			},
+			4294967296,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.IsbnType,
+			},
+			500000000000,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.HexType,
+				MinLength:   2,
+				MaxLength:   10,
+			},
+			1103823438080,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.Base64Type,
+				MinLength:   4,
+				MaxLength:   8,
+			},
+			285941759741952,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.Base64URLType,
+				MinLength:   4,
+				MaxLength:   8,
+			},
+			285941759741952,
+		},
+		{
+			&models.ColumnStringParams{
+				Locale:      "en",
+				LogicalType: models.Base64RawURLType,
+				MinLength:   1,
+				MaxLength:   8,
+			},
+			285942833483840,
 		},
 	}
 

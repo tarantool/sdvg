@@ -202,9 +202,10 @@ func TestGeneratorConfigYAMLParse(t *testing.T) {
 	}
 
 	defaultStringParams := &ColumnStringParams{
-		MinLength: 1,
-		MaxLength: 32,
-		Locale:    "en",
+		MinLength:   1,
+		MaxLength:   32,
+		Locale:      "en",
+		LogicalType: SimpleStringType,
 	}
 
 	defaultDateTimeParams := &ColumnDateTimeParams{

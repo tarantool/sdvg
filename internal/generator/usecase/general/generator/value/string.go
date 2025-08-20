@@ -14,13 +14,16 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/tarantool/sdvg/internal/generator/common"
 	"github.com/tarantool/sdvg/internal/generator/models"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/en"
 	"github.com/tarantool/sdvg/internal/generator/usecase/general/locale/ru"
 )
 
-type prepareFunc func() error
+const (
+	base64EndingCombinations = 4161
+)
 
 // Verify interface compliance in compile time.
 var _ Generator = (*StringGenerator)(nil)
@@ -36,14 +39,13 @@ type StringGenerator struct {
 	countByPrefix    []float64
 	sumByPrefix      []float64
 	completions      []int64  // completions[i] stores the number of ways to form a text of length i
-	lexOrderedOctets []string // precomputed lexicographically ordered IPv4 octets
+	ipv4SortedOctets []string // precomputed lexicographically ordered IPv4 octets
 	powersOfTen      []uint64 // precomputed powers of ten for ISBN generation
 	base64Endings    []string // precomputed Base64 endings
 }
 
-//nolint:cyclop
 func (g *StringGenerator) Prepare() error {
-	prepareFuncs := []prepareFunc{
+	prepareFuncs := []func() error{
 		g.prepareTemplate,
 		g.prepareLocaleModule,
 		g.prepareCharset,
@@ -134,6 +136,7 @@ func (g *StringGenerator) prepareCharset() error {
 	return nil
 }
 
+//nolint:cyclop
 func (g *StringGenerator) prepareLogicalType() error {
 	switch g.LogicalType {
 	case models.FirstNameType:
@@ -163,7 +166,7 @@ func (g *StringGenerator) prepareLogicalType() error {
 		g.calculateCompletions(g.MaxLength + 1)
 
 	case models.Ipv4Type:
-		g.generateSortedOctets()
+		g.generateIpv4SortedOctets()
 
 	case models.IsbnType:
 		g.calculatePowersOfTen()
@@ -178,82 +181,105 @@ func (g *StringGenerator) prepareLogicalType() error {
 func (g *StringGenerator) SetTotalCount(totalValuesCount uint64) error {
 	g.totalValuesCount = totalValuesCount
 
-	if g.LogicalType == models.SimpleStringType || g.LogicalType == models.Base64Type ||
-		g.LogicalType == models.Base64URLType || g.LogicalType == models.Base64RawURLType ||
-		g.LogicalType == models.HexType {
-		tailCount, allowedLength, prefixLength := g.lexicographicRules()
-		charsetLength := float64(len(g.charset))
-
-		var allowedCount int
-
-		for length := g.MinLength; length <= g.MaxLength; length++ {
-			if allowedLength(length) {
-				allowedCount++
-			}
-		}
-
-		countByLength := make([]float64, g.MaxLength+1)
-		avgRangeCount := math.Ceil(float64(totalValuesCount) / float64(allowedCount))
-
-		for length := g.MinLength; length <= g.MaxLength; length++ {
-			if !allowedLength(length) {
-				continue
-			}
-
-			rangeCount := float64(tailCount) * math.Pow(charsetLength, float64(prefixLength(length)))
-
-			var currentLengthCount float64
-			if avgRangeCount > rangeCount {
-				currentLengthCount = rangeCount
-
-				remainAllowed := 0
-				for candidateLength := length + 1; candidateLength <= g.MaxLength; candidateLength++ {
-					if allowedLength(candidateLength) {
-						remainAllowed++
-					}
-				}
-
-				if remainAllowed > 0 {
-					avgRangeCount += (avgRangeCount - rangeCount) / float64(remainAllowed)
-				}
-			} else {
-				currentLengthCount = math.Ceil(avgRangeCount)
-			}
-			countByLength[length] = currentLengthCount
-		}
-
-		g.countByPrefix = make([]float64, g.MaxLength+1)
-		g.sumByPrefix = make([]float64, g.MaxLength+2)
-
-		for prefix := 0; prefix <= g.MaxLength; prefix++ {
-			prefixDivider := math.Pow(charsetLength, float64(prefix))
-			nextPrefixDivider := prefixDivider * charsetLength
-
-			var endNow float64
-			for length := g.MinLength; length <= g.MaxLength; length++ {
-				if allowedLength(length) && prefixLength(length) == prefix {
-					endNow += countByLength[length] / prefixDivider
-				}
-			}
-			g.countByPrefix[prefix] = endNow
-
-			var sumNext float64
-			for length := g.MinLength; length <= g.MaxLength; length++ {
-				if allowedLength(length) && prefixLength(length) >= prefix+1 {
-					sumNext += countByLength[length] / nextPrefixDivider
-				}
-			}
-			g.sumByPrefix[prefix+1] = sumNext
-		}
+	if common.Any(
+		g.LogicalType == models.SimpleStringType,
+		g.LogicalType == models.Base64Type,
+		g.LogicalType == models.Base64URLType,
+		g.LogicalType == models.Base64RawURLType,
+		g.LogicalType == models.HexType,
+	) {
+		g.calculatePrefixDistribution(totalValuesCount)
 	}
 
 	return nil
 }
 
-func (g *StringGenerator) lexicographicRules() (int, func(int) bool, func(int) int) {
+//nolint:mnd,cyclop,gocognit
+func (g *StringGenerator) calculatePrefixDistribution(totalValuesCount uint64) {
+	endingCombinations, allowedLength, prefixLength := g.lengthRules()
+	charsetLength := float64(len(g.charset))
+
+	var allowedCount int
+
+	for length := g.MinLength; length <= g.MaxLength; length++ {
+		if allowedLength(length) {
+			allowedCount++
+		}
+	}
+
+	countByLength := make([]float64, g.MaxLength+1)
+	avgRangeCount := math.Ceil(float64(totalValuesCount) / float64(allowedCount))
+
+	for length := g.MinLength; length <= g.MaxLength; length++ {
+		if !allowedLength(length) {
+			continue
+		}
+
+		rangeCount := float64(endingCombinations) * math.Pow(charsetLength, float64(prefixLength(length)))
+
+		var currentLengthCount float64
+		if avgRangeCount > rangeCount {
+			currentLengthCount = rangeCount
+
+			remainAllowed := 0
+
+			for candidateLength := length + 1; candidateLength <= g.MaxLength; candidateLength++ {
+				if allowedLength(candidateLength) {
+					remainAllowed++
+				}
+			}
+
+			if remainAllowed > 0 {
+				avgRangeCount += (avgRangeCount - rangeCount) / float64(remainAllowed)
+			}
+		} else {
+			currentLengthCount = math.Ceil(avgRangeCount)
+		}
+
+		countByLength[length] = currentLengthCount
+	}
+
+	g.countByPrefix = make([]float64, g.MaxLength+1)
+	g.sumByPrefix = make([]float64, g.MaxLength+2)
+
+	for prefix := 0; prefix <= g.MaxLength; prefix++ {
+		prefixDivider := math.Pow(charsetLength, float64(prefix))
+		nextPrefixDivider := prefixDivider * charsetLength
+
+		var endNow float64
+
+		for length := g.MinLength; length <= g.MaxLength; length++ {
+			if allowedLength(length) && prefixLength(length) == prefix {
+				endNow += countByLength[length] / prefixDivider
+			}
+		}
+
+		g.countByPrefix[prefix] = endNow
+
+		var sumNext float64
+
+		for length := g.MinLength; length <= g.MaxLength; length++ {
+			if allowedLength(length) && prefixLength(length) >= prefix+1 {
+				sumNext += countByLength[length] / nextPrefixDivider
+			}
+		}
+
+		g.sumByPrefix[prefix+1] = sumNext
+	}
+}
+
+// lengthRules returns a set of rules for string length based on the
+// logical type. Specifically, it provides:
+//
+//  1. endingCombinations     – the number of possible combinations for the string ending,
+//  2. allowedLength – a predicate that checks whether a given length is valid,
+//  3. prefixLength  – a function that computes the effective prefix length.
+//
+//nolint:mnd
+func (g *StringGenerator) lengthRules() (int, func(int) bool, func(int) int) {
 	var (
-		tailCount     = 1
-		allowedLength = func(length int) bool {
+		endingCombinations = 1
+		allowedLength      = func(length int) bool {
 			return true
 		}
 		prefixLength = func(length int) int {
@@ -263,7 +289,7 @@ func (g *StringGenerator) lexicographicRules() (int, func(int) bool, func(int) i
 
 	switch g.LogicalType {
 	case models.Base64Type, models.Base64URLType:
-		tailCount = 4161
+		endingCombinations = base64EndingCombinations
 		allowedLength = func(length int) bool {
 			return length >= 4 && length%4 == 0
 		}
@@ -282,7 +308,7 @@ func (g *StringGenerator) lexicographicRules() (int, func(int) bool, func(int) i
 		}
 	}
 
-	return tailCount, allowedLength, prefixLength
+	return endingCombinations, allowedLength, prefixLength
 }
 
 // calculateCompletions precomputes completions.
@@ -328,16 +354,18 @@ func (g *StringGenerator) calculateCompletions(length int) {
 	}
 }
 
-func (g *StringGenerator) generateSortedOctets() {
-	g.lexOrderedOctets = make([]string, 256)
+//nolint:mnd
+func (g *StringGenerator) generateIpv4SortedOctets() {
+	g.ipv4SortedOctets = make([]string, 256)
 
-	for val := 0; val < 256; val++ {
-		g.lexOrderedOctets[val] = strconv.Itoa(val)
+	for val := range 256 {
+		g.ipv4SortedOctets[val] = strconv.Itoa(val)
 	}
 
-	sort.Strings(g.lexOrderedOctets)
+	sort.Strings(g.ipv4SortedOctets)
 }
 
+//nolint:mnd
 func (g *StringGenerator) calculatePowersOfTen() {
 	g.powersOfTen = make([]uint64, 11)
 	g.powersOfTen[0] = 1
@@ -354,21 +382,20 @@ func (g *StringGenerator) generateBase64SortedEndings() {
 	slices.Sort(alphabet)
 
 	eqIndex := -1
+
 	for i, r := range alphabet {
 		if r == '=' {
 			eqIndex = i
+
 			break
 		}
 	}
-	if eqIndex == -1 {
-		panic("'=' not found in base64 alphabet")
-	}
 
 	charsetLength := len(alphabet)
-	g.base64Endings = make([]string, 0, 4161)
+	g.base64Endings = make([]string, 0, base64EndingCombinations)
 
-	for i := 0; i < charsetLength; i++ {
-		for j := 0; j < charsetLength; j++ {
+	for i := range charsetLength {
+		for j := range charsetLength {
 			if i < eqIndex || (alphabet[i] == '=' && alphabet[j] == '=') || i > eqIndex {
 				g.base64Endings = append(g.base64Endings, string([]rune{alphabet[i], alphabet[j]}))
 			}
@@ -551,6 +578,7 @@ func (g *StringGenerator) text(num float64) (string, error) {
 	return text, nil
 }
 
+//nolint:mnd
 func (g *StringGenerator) ipv4(number float64) string {
 	index := uint32(orderedInt64(0, math.MaxUint32, number, g.totalValuesCount))
 
@@ -559,10 +587,10 @@ func (g *StringGenerator) ipv4(number float64) string {
 
 	return fmt.Sprintf(
 		"%s.%s.%s.%s",
-		g.lexOrderedOctets[int(indexBytes[0])],
-		g.lexOrderedOctets[int(indexBytes[1])],
-		g.lexOrderedOctets[int(indexBytes[2])],
-		g.lexOrderedOctets[int(indexBytes[3])],
+		g.ipv4SortedOctets[int(indexBytes[0])],
+		g.ipv4SortedOctets[int(indexBytes[1])],
+		g.ipv4SortedOctets[int(indexBytes[2])],
+		g.ipv4SortedOctets[int(indexBytes[3])],
 	)
 }
 
@@ -589,7 +617,7 @@ func (g *StringGenerator) ipv4(number float64) string {
 //     If index >= totalValuesPerPrefix, choose "979" and subtract totalValuesPerPrefix from index.
 //     Otherwise, — "978". This ensures all "978..." go before all "979..." lexicographically.
 //
-// 3. Generate Country Group (1–5 digits)
+// 3. Generate Country Group (1 — 5 digits)
 //   - Each position can either be a hyphen (end of group) or a digit 0–9.
 //   - First position must be a digit (cannot be a hyphen).
 //   - The number of possible publisherBlockLengths after a given countryBlockLength is precomputed using the formula:
@@ -599,7 +627,7 @@ func (g *StringGenerator) ipv4(number float64) string {
 //   - digit = index / digitWeight, then index %= digitWeight.
 //   - Append the digit and update hyphenWeight — number of ISBNs if we put a hyphen next.
 //
-// 4. Generate Publisher (1–maxPublisherBlockLength digits)
+// 4. Generate Publisher (1 — maxPublisherBlockLength digits)
 //   - Similar logic as Country group: first digit is mandatory, subsequent positions can be a hyphen or digit.
 //   - maxPublisherLength = min(7, 8 - countryLen).
 //   - digitWeight here = (remaining publisher digits) × 10^(remaining total digits after current position).
@@ -621,7 +649,10 @@ func (g *StringGenerator) ipv4(number float64) string {
 //   - Full lexicographic ordering across all possible ISBNs.
 //   - Even distribution when scaling from `number`.
 //   - No pre-generation of all ISBNs — computed on demand in O(1) time.
+//
+//nolint:mnd
 func (g *StringGenerator) isbn(number float64) string {
+	// 25 possible group partitioning schemes
 	totalValuesPerPrefix := 25 * g.powersOfTen[10]
 	totalValues := 2 * totalValuesPerPrefix
 
@@ -651,7 +682,7 @@ func (g *StringGenerator) isbn(number float64) string {
 		digit := index / digitWeight
 		index %= digitWeight
 
-		countryBlock = append(countryBlock, '0'+byte(digit))
+		countryBlock = append(countryBlock, byte(digit)+'0')
 		countryBlockLength++
 
 		hyphenWeight = uint64(8-countryBlockLength) * g.powersOfTen[10-countryBlockLength]
@@ -673,7 +704,7 @@ func (g *StringGenerator) isbn(number float64) string {
 		digit := index / digitWeight
 		index %= digitWeight
 
-		publisherBlock = append(publisherBlock, '0'+byte(digit))
+		publisherBlock = append(publisherBlock, byte(digit)+'0')
 		publisherBlockLength++
 
 		hyphenWeight = g.powersOfTen[10-countryBlockLength-publisherBlockLength]
@@ -821,6 +852,8 @@ func (g *StringGenerator) simpleString(number float64) string {
 }
 
 // Value returns n-th string from range.
+//
+//nolint:cyclop
 func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, error) {
 	if g.Template != "" {
 		val, err := g.templateString(rowValues)
@@ -863,7 +896,7 @@ func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, 
 	}
 }
 
-//nolint:cyclop
+//nolint:cyclop,mnd
 func (g *StringGenerator) ValuesCount() float64 {
 	if g.Template != "" {
 		// Using `distinct` or `ordered` parameters with templates
@@ -942,12 +975,13 @@ func (g *StringGenerator) ValuesCount() float64 {
 		//   Total endings per prefix = 4096 + 64 + 1 = 4161.
 		total := float64(0)
 		for length := g.MinLength; length <= g.MaxLength; length += 4 {
-			total += math.Pow(float64(len(g.charset)), float64(length-2)) * 4161
+			total += math.Pow(float64(len(g.charset)), float64(length-2)) * base64EndingCombinations
 		}
 
 		return total
 
 	case models.HexType:
+		// Lengths are always multiples of 2.
 		total := float64(0)
 		for length := g.MinLength; length <= g.MaxLength; length += 2 {
 			total += math.Pow(float64(len(g.charset)), float64(length))

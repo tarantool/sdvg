@@ -730,6 +730,7 @@ func (p *ColumnStringParams) FillDefaults() {
 	p.LogicalType = strings.ToLower(p.LogicalType)
 }
 
+//nolint:cyclop
 func (p *ColumnStringParams) Validate() []error {
 	var errs []error
 
@@ -749,6 +750,7 @@ func (p *ColumnStringParams) Validate() []error {
 	}
 
 	logicalTypes := []string{
+		"",
 		SimpleStringType,
 		FirstNameType,
 		LastNameType,
