@@ -1,5 +1,5 @@
 name: "Comment PR"
-run-name: "${{ format('Comment PR #{0}', github.event.pull_request.number)) }}"
+run-name: "${{ format('Comment PR #{0}', github.event.pull_request.number) }}"
 
 on:
   pull_request_target:
