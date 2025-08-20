@@ -168,7 +168,7 @@ func (g *StringGenerator) prepareLogicalType() error {
 	case models.Ipv4Type:
 		g.generateIpv4SortedOctets()
 
-	case models.IsbnType:
+	case models.Isbn13Type:
 		g.calculatePowersOfTen()
 
 	case models.Base64Type, models.Base64URLType:
@@ -881,7 +881,7 @@ func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, 
 		return g.hex(number), nil
 	case models.Ipv4Type:
 		return g.ipv4(number), nil
-	case models.IsbnType:
+	case models.Isbn13Type:
 		return g.isbn13(number), nil
 	case models.Base64Type:
 		return g.base64(number), nil

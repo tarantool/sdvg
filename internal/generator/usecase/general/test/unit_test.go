@@ -501,7 +501,7 @@ func TestString(t *testing.T) {
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 254, MaxLength: 256, Locale: "ru"}, 254, 256},
 		{&models.ColumnStringParams{LogicalType: models.TextType, MinLength: 510, MaxLength: 512, Locale: "ru"}, 510, 512},
 		{&models.ColumnStringParams{LogicalType: models.CreditCardType}, 19, 19},
-		{&models.ColumnStringParams{LogicalType: models.IsbnType}, 17, 17},
+		{&models.ColumnStringParams{LogicalType: models.Isbn13Type}, 17, 17},
 		{&models.ColumnStringParams{LogicalType: models.Ipv4Type}, 7, 15},
 		{&models.ColumnStringParams{LogicalType: models.HexType, MinLength: 2, MaxLength: 10}, 2, 10},
 		{&models.ColumnStringParams{LogicalType: models.HexType, MinLength: 4, MaxLength: 4}, 4, 4},
@@ -657,7 +657,7 @@ func TestString(t *testing.T) {
 		{
 			&models.ColumnStringParams{
 				Locale:      "en",
-				LogicalType: models.IsbnType,
+				LogicalType: models.Isbn13Type,
 			},
 			500000000000,
 		},
