@@ -21,7 +21,7 @@ const (
 	TextType         = "text"
 	CreditCardType   = "credit_card"
 	Ipv4Type         = "ipv4"
-	IsbnType         = "isbn"
+	Isbn13Type       = "isbn13"
 	HexType          = "hex"
 	Base64Type       = "base64"
 	Base64URLType    = "base64_url"
@@ -758,7 +758,7 @@ func (p *ColumnStringParams) Validate() []error {
 		TextType,
 		CreditCardType,
 		Ipv4Type,
-		IsbnType,
+		Isbn13Type,
 		HexType,
 		Base64Type,
 		Base64URLType,

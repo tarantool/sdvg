@@ -651,7 +651,7 @@ func (g *StringGenerator) ipv4(number float64) string {
 //   - No pre-generation of all ISBNs — computed on demand in O(1) time.
 //
 //nolint:mnd
-func (g *StringGenerator) isbn(number float64) string {
+func (g *StringGenerator) isbn13(number float64) string {
 	// 25 possible group partitioning schemes
 	totalValuesPerPrefix := 25 * g.powersOfTen[10]
 	totalValues := 2 * totalValuesPerPrefix
@@ -882,7 +882,7 @@ func (g *StringGenerator) Value(number float64, rowValues map[string]any) (any, 
 	case models.Ipv4Type:
 		return g.ipv4(number), nil
 	case models.IsbnType:
-		return g.isbn(number), nil
+		return g.isbn13(number), nil
 	case models.Base64Type:
 		return g.base64(number), nil
 	case models.Base64URLType:
@@ -959,7 +959,7 @@ func (g *StringGenerator) ValuesCount() float64 {
 		// +1 because MaxUint32 is 2^32 - 1.
 		return float64(math.MaxUint32 + 1)
 
-	case models.IsbnType:
+	case models.Isbn13Type:
 		// ISBN-13: we support prefixes 978 and 979 -> 2 variants.
 		// For each prefix: 25 possible group partitioning schemes × 10^10 digit combinations.
 		// Total unique ISBNs = 2 * 25 * 10^10.

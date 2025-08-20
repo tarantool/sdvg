@@ -163,7 +163,8 @@ open_ai:
 
 - `min_length`: Минимальная длина строки. По умолчанию `1`.
 - `max_length`: Максимальная длина строки. По умолчанию `32`.
-- `logical_type`: Логический тип строки. Поддерживаемые значения: `first_name`, `last_name`, `phone`, `text`.
+- `logical_type`: Логический тип строки. Поддерживаемые значения: `simple_string`, `first_name`, `last_name`, `phone`,
+  `text`, `ipv4`, `isbn13`, `hex`, `base64`, `base64_url`, `base64_raw_url`, `credit_card`. По умолчанию `simple_string`.
 - `template`: Шаблон для генерации строки. Позволяет использовать значения любых столбов генерируемой модели.
   Информация о том, как использовать шаблонные строки, описана в конце данного раздела.
   Не работает совместно с `ordered`, `distinct_percentage` и `distinct_count`.

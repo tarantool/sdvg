@@ -157,7 +157,8 @@ Structure `models[*].columns[*].type_params` for data type `string`:
 
 - `min_length`: Minimum string length. Default is `1`.
 - `max_length`: Maximum string length. Default is `32`.
-- `logical_type`: Logical type of string. Supported values: `first_name`, `last_name`, `phone`, `text`.
+- `logical_type`: Logical type of string. Supported values: `simple_string`, `first_name`, `last_name`, `phone`,
+  `text`, `ipv4`, `isbn13`, `hex`, `base64`, `base64_url`, `base64_raw_url`, `credit_card`. Default is `simple_string`.
 - `template`: Template for string generation. Allows you to use the values of any columns of the generated model.
   Information about the functions available in template strings is described at the end of this section.
   Cannot coexist with `ordered`, `distinct_percentage` and `distinct_count`.
